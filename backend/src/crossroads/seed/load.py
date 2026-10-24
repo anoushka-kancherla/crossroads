@@ -16,7 +16,7 @@ import psycopg
 from ..adapters.nessie import FakeNessie, HttpNessie, NessieClient
 from ..config import load_settings
 from ..db.repo import apply_schema, connect, refresh_aggregates
-from .profiles import Profile, generate_profiles
+from .profiles import Profile, generate_profiles, synthetic_quote
 
 
 def _ts(d: date) -> datetime:
@@ -67,6 +67,16 @@ def upsert_profile(conn: psycopg.Connection, p: Profile) -> None:
             "INSERT INTO odometer_readings (ts, customer_id, odometer) VALUES (%s, %s, %s) "
             "ON CONFLICT DO NOTHING",
             (_ts(on), p.id, odometer),
+        )
+    # Synthetic listing quotes stand in for real local listings (customers meant to have none get no row).
+    quote = synthetic_quote(p)
+    if quote is not None:
+        conn.execute(
+            """INSERT INTO listing_cache (make, model, year, zip, low, median, high, n_listings)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (make, model, year, zip) DO UPDATE SET low = EXCLUDED.low,
+                 median = EXCLUDED.median, high = EXCLUDED.high, n_listings = EXCLUDED.n_listings""",
+            (v.make, v.model, v.year, p.zip, quote.low, quote.median, quote.high, quote.n),
         )
 
 

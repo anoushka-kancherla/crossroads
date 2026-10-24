@@ -14,14 +14,15 @@ from decimal import Decimal as D
 
 from faker import Faker
 
+from ..adapters.listings import ListingQuote
 from ..config import Config
 from ..engine import mileage, valuation
 from ..engine.defaults import default_scenario
-from ..engine.money import payment
+from ..engine.money import cents, payment
 from ..engine.schemas import Contract, Customer, EngineInputs
 
 SEED = 42
-AS_OF = date(2026, 10, 24)  # fixed so the data (and the tests) never drift with the calendar
+AS_OF = Config().as_of  # fixed so the data (and the tests) never drift with the calendar
 
 # name, state, zip, latitude, longitude (synthetic home locations for the dealer lookup)
 CITIES = [
@@ -137,6 +138,17 @@ class SeedCustomer:
     inputs: EngineInputs
     projection: mileage.Projection
     value_basis: str
+
+
+def synthetic_quote(p: Profile) -> ListingQuote | None:
+    """A believable listing range around the profile's median. Synthetic: it stands in for real
+    local listings. None for the customers who are meant to have no listings."""
+    if p.listing_median is None:
+        return None
+    m = p.listing_median
+    return ListingQuote(
+        low=cents(m * D("0.94")), median=cents(m), high=cents(m * D("1.06")), n=6 + int(p.id[-2:]) % 6
+    )
 
 
 def _split(total: int, parts: list[tuple[str, str]], rest: str) -> list[tuple[str, D]]:

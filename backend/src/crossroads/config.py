@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal
 
 
@@ -18,6 +19,7 @@ def _d(x: str) -> Decimal:
 @dataclass(frozen=True)
 class Config:
     horizon_months: int = 60
+    as_of: date = date(2026, 10, 24)  # the demo clock: the synthetic data is dated as of this day
     buffer: Decimal = _d("300")  # kept free every month (FR-008)
     baseline_miles: int = 13_500  # typical U.S. driver; also the depreciation mileage baseline
     depreciation: Decimal = _d("0.12")  # per year (FR-034)
