@@ -51,23 +51,35 @@ def _basis_label(basis: str, cfg: Config) -> str:
     )
 
 
+def projection_of(rec: CustomerRecord, cfg: Config) -> mileage.Projection:
+    """The mileage projection every screen shares, and so the rate the sliders start from."""
+    c = rec.contract
+    per_year = c.allowance_total_miles * 12 // c.term_months if c.type == "lease" else None
+    return mileage.project(list(rec.readings), c.type, per_year, cfg)
+
+
+def market_value_of(rec: CustomerRecord, cfg: Config) -> tuple[Decimal, str]:
+    """Today's value: the median of the cached listings, else the depreciated original price."""
+    if rec.quote is not None:
+        return rec.quote.median, "listings"
+    value, _ = valuation.todays_value(None, rec.vehicle.original_price, cfg.as_of.year - rec.vehicle.year, cfg)
+    return value, "original_price"
+
+
 def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Config) -> OverviewResponse:
     c, v = rec.contract, rec.vehicle
     lease = c.type == "lease"
 
-    allowance_per_year = c.allowance_total_miles * 12 // c.term_months if lease else None
-    proj = mileage.project(list(rec.readings), c.type, allowance_per_year, cfg)
+    proj = projection_of(rec, cfg)
     rate = proj.default_input  # the same rate the sliders start from, so every screen agrees
     # Whole miles, so the overage and its fee are computed from exactly the miles that are shown.
     end_miles = _whole(mileage.miles_at(v.current_odometer, rate, c.months_left))
     over = int(mileage.overage_miles(Decimal(end_miles), c.allowance_total_miles)) if lease else None
 
+    value, basis = market_value_of(rec, cfg)
     if rec.quote is not None:
-        value, basis = rec.quote.median, "listings"
         label = f"From {rec.quote.n} local listings"
     else:
-        value, _ = valuation.todays_value(None, v.original_price, cfg.as_of.year - v.year, cfg)
-        basis = "original_price"
         pct = format((cfg.depreciation * 100).normalize(), "f")
         label = (
             f"Estimated from the original price with an illustrative {pct}% yearly depreciation; "

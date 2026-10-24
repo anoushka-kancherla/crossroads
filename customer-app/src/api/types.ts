@@ -55,6 +55,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customers/{customer_id}/paths": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Paths
+         * @description Every path for this customer, the recommendation, and what would flip it. Send no body (or
+         *     leave inputs out) to get the customer's own defaults, which come back in `inputs_used`.
+         */
+        post: operations["paths_api_customers__customer_id__paths_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customers/{customer_id}/explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explanation
+         * @description The model's explanation of the recommendation. It is only ever returned if it passed the
+         *     number check; otherwise this returns the checked template.
+         */
+        post: operations["explanation_api_customers__customer_id__explanation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -103,6 +145,41 @@ export interface components {
             contract_type: "lease" | "loan";
             /** Months Left */
             months_left: number;
+        };
+        /** ExplanationOut */
+        ExplanationOut: {
+            /** Headline */
+            headline: string;
+            /** Text */
+            text: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "gemini" | "template";
+            /** Verified */
+            verified: boolean;
+        };
+        /** FlipOut */
+        FlipOut: {
+            /**
+             * Input
+             * @enum {string}
+             */
+            input: "miles_per_year" | "monthly_budget" | "years_to_keep" | "financing_rate";
+            /** Current */
+            current: string;
+            /** Threshold */
+            threshold: string;
+            /**
+             * To Path
+             * @enum {string}
+             */
+            to_path: "keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away";
+            /** Relative Change */
+            relative_change: string;
+            /** Text */
+            text: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -159,6 +236,34 @@ export interface components {
             /** Room For Payment */
             room_for_payment: string;
         };
+        /** OptionOut */
+        OptionOut: {
+            /**
+             * Path
+             * @enum {string}
+             */
+            path: "keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away";
+            /** Label */
+            label: string;
+            /** Eligible */
+            eligible: boolean;
+            /** Ineligible Reason */
+            ineligible_reason: string | null;
+            /** Five Year Cost */
+            five_year_cost: string;
+            /** Monthly Payment */
+            monthly_payment: string;
+            /** Upfront Cost */
+            upfront_cost: string;
+            /** Affordable */
+            affordable: boolean;
+            /** Shortfalls */
+            shortfalls: components["schemas"]["ShortfallOut"][];
+            /** Tradeoff */
+            tradeoff: string;
+            /** Cumulative Cost */
+            cumulative_cost: string[];
+        };
         /** OverviewResponse */
         OverviewResponse: {
             customer: components["schemas"]["CustomerSummary"];
@@ -166,6 +271,39 @@ export interface components {
             mileage: components["schemas"]["Mileage"];
             money: components["schemas"]["Money"];
             market_value: components["schemas"]["MarketValue"];
+        };
+        /**
+         * PathsRequest
+         * @description Any input left out takes the customer's own default. Ranges are the slider ranges; the budget
+         *     maximum is checked per customer, because a customer's default can sit above the standard one.
+         */
+        PathsRequest: {
+            /** Miles Per Year */
+            miles_per_year?: number | null;
+            /** Monthly Budget */
+            monthly_budget?: number | string | null;
+            /** Years To Keep */
+            years_to_keep?: number | null;
+            /** Financing Rate */
+            financing_rate?: number | string | null;
+        };
+        /** PathsResponse */
+        PathsResponse: {
+            /**
+             * Contract Type
+             * @enum {string}
+             */
+            contract_type: "lease" | "loan";
+            inputs_used: components["schemas"]["ScenarioOut"];
+            /** Options */
+            options: components["schemas"]["OptionOut"][];
+            recommendation: components["schemas"]["RecommendationOut"];
+            /** Flips */
+            flips: components["schemas"]["FlipOut"][];
+            /** Ranges */
+            ranges: {
+                [key: string]: components["schemas"]["RangeOut"];
+            };
         };
         /** Projection */
         Projection: {
@@ -184,6 +322,56 @@ export interface components {
             overage_miles: number | null;
             /** Overage Fee */
             overage_fee: string | null;
+        };
+        /** RangeOut */
+        RangeOut: {
+            /** Min */
+            min: string;
+            /** Max */
+            max: string;
+            /** Step */
+            step: string;
+        };
+        /** RecommendationOut */
+        RecommendationOut: {
+            /** Path */
+            path: ("keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away") | null;
+            /** Label */
+            label: string | null;
+            /** Runner Up */
+            runner_up: ("keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away") | null;
+            /** Monthly Room Left */
+            monthly_room_left: string;
+            /** Closest When None */
+            closest_when_none: ("keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away") | null;
+            /** Closest Label */
+            closest_label: string | null;
+            /** Closest Gap */
+            closest_gap: string;
+            explanation: components["schemas"]["ExplanationOut"];
+        };
+        /** ScenarioOut */
+        ScenarioOut: {
+            /** Miles Per Year */
+            miles_per_year: number;
+            /** Monthly Budget */
+            monthly_budget: string;
+            /** Years To Keep */
+            years_to_keep: number;
+            /** Financing Rate */
+            financing_rate: string;
+        };
+        /** ShortfallOut */
+        ShortfallOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "monthly" | "cash";
+            /** Amount */
+            amount: string;
+            /** Text */
+            text: string;
         };
         /** SpendingPoint */
         SpendingPoint: {
@@ -314,6 +502,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SpendingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    paths_api_customers__customer_id__paths_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PathsRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PathsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explanation_api_customers__customer_id__explanation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PathsRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplanationOut"];
                 };
             };
             /** @description Validation Error */

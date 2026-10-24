@@ -168,8 +168,17 @@ function MileageChart({ mileage }: { mileage: OverviewData["mileage"] }) {
             <YAxis />
             <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
             <Legend />
-            <Line type="monotone" dataKey="actual" name="Actual miles" stroke={COLORS[0]} dot={false} connectNulls />
-            <Line type="monotone" dataKey="projected" name="Projected miles" stroke={COLORS[0]} strokeDasharray="6 4" dot={false} connectNulls />
+            <Line type="monotone" dataKey="actual" name="Actual miles" stroke={COLORS[0]} dot={false} connectNulls isAnimationActive={false} />
+            <Line
+              type="monotone"
+              dataKey="projected"
+              name="Projected miles"
+              stroke={COLORS[0]}
+              strokeDasharray="6 4"
+              dot={false}
+              connectNulls
+              isAnimationActive={false}
+            />
             {allowance !== null && <ReferenceLine y={allowance} stroke={COLORS[4]} strokeDasharray="4 4" label="Allowance" />}
           </LineChart>
         </ResponsiveContainer>
@@ -207,7 +216,7 @@ function SpendingChart({ customerId }: { customerId: string }) {
                 <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
                 <Legend />
                 {categories.map((c, i) => (
-                  <Bar key={c} dataKey={c} stackId="spend" fill={COLORS[i % COLORS.length]} />
+                  <Bar key={c} dataKey={c} stackId="spend" fill={COLORS[i % COLORS.length]} isAnimationActive={false} />
                 ))}
               </BarChart>
             </ResponsiveContainer>

@@ -40,4 +40,18 @@ h1 { margin: 0; font-size: 1.6rem; }
   display: inline-block; padding: 0.8rem 1.4rem; border: 2px solid #111; background: #eee;
   font-weight: 600; text-decoration: none; color: inherit;
 }
+.paths { display: grid; gap: 1rem; }
+.recommend { border: 3px double #111; }
+.recommend h1 { margin: 0.25rem 0 0.5rem; }
+.eyebrow { margin: 0; font-size: 0.85rem; color: #555; }
+.badge { display: inline-block; border: 1px solid #111; padding: 0.1rem 0.5rem; font-size: 0.8rem; }
+.flips { margin: 0; padding-left: 1.2rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.75rem; }
+.card { border: 1px solid #999; padding: 0.75rem; }
+.card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+.card h3 { margin: 0; font-size: 1.05rem; flex: 1; }
+.card-recommended { border: 3px solid #111; }
+.card-ineligible { border-style: dashed; color: #555; }
+.tag { font-size: 0.8rem; border: 1px solid #555; padding: 0 0.4rem; }
+.why { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; color: #8a4b00; }
 [role="alert"] { border: 1px solid #b00020; color: #b00020; padding: 0.5rem 0.75rem; }

@@ -12,10 +12,10 @@ from .schemas import SLIDERS, EngineInputs, Flip
 _ORDER = ("miles_per_year", "monthly_budget", "years_to_keep", "financing_rate")
 
 
-def _grid(name: str, current: Decimal) -> list[Decimal]:
+def _grid(name: str, current: Decimal, budget_hi: Decimal | None = None) -> list[Decimal]:
     lo, hi, step = SLIDERS[name]
     if name == "monthly_budget":  # a customer's own default can sit above the standard maximum
-        hi = max(hi, Decimal(math.ceil(current / step)) * step)
+        hi = max(hi, budget_hi or hi, Decimal(math.ceil(current / step)) * step)
     n = int((hi - lo) / step)
     return [lo + step * i for i in range(n + 1)]
 
@@ -25,11 +25,12 @@ def _with(inp: EngineInputs, name: str, value: Decimal) -> EngineInputs:
     return inp.model_copy(update={"scenario": inp.scenario.model_copy(update={name: typed})})
 
 
-def find_flips(inp: EngineInputs, cfg: Config) -> list[Flip]:
+def find_flips(inp: EngineInputs, cfg: Config, budget_hi: Decimal | None = None) -> list[Flip]:
     """For each input, scan its slider range at slider step outward from the current value and
     take the nearest value that makes a different path the recommendation. At most one flip per
     input (omitted when none exists), sorted by smallest relative change. Points where nothing
-    would be affordable are skipped: a flip names the path it moves to."""
+    would be affordable are skipped: a flip names the path it moves to. `budget_hi` is the
+    customer's own budget slider maximum, so the search covers the whole slider."""
     cache: dict = {}
     base = evaluate(inp, cfg, cache).recommendation.path
     flips: list[Flip] = []
@@ -37,7 +38,8 @@ def find_flips(inp: EngineInputs, cfg: Config) -> list[Flip]:
         current = Decimal(str(getattr(inp.scenario, name)))
         if current == 0:
             continue
-        candidates = sorted((v for v in _grid(name, current) if v != current), key=lambda v: (abs(v - current), v))
+        grid = _grid(name, current, budget_hi)
+        candidates = sorted((v for v in grid if v != current), key=lambda v: (abs(v - current), v))
         for value in candidates:
             path = evaluate(_with(inp, name, value), cfg, cache).recommendation.path
             if path is not None and path != base:

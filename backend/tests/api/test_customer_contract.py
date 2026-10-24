@@ -44,7 +44,8 @@ def test_vehicle_labels_read_like_the_wireframe(client):
 def test_the_api_exposes_only_customer_routes(client):
     paths = set(client.get("/api/openapi.json").json()["paths"])
     assert paths == {"/api/customers", "/api/customers/{customer_id}/overview",
-                     "/api/customers/{customer_id}/spending", "/healthz"}
+                     "/api/customers/{customer_id}/spending", "/api/customers/{customer_id}/paths",
+                     "/api/customers/{customer_id}/explanation", "/healthz"}
     for path in paths:
         for word in ("internal", "portfolio", "aggregate", "retained", "revenue", "business"):
             assert word not in path

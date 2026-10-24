@@ -4,6 +4,10 @@ import type { components } from "./types";
 export type Customer = components["schemas"]["CustomerListItem"];
 export type Overview = components["schemas"]["OverviewResponse"];
 export type Spending = components["schemas"]["SpendingResponse"];
+export type PathsResult = components["schemas"]["PathsResponse"];
+export type PathOption = components["schemas"]["OptionOut"];
+export type PathsInputs = components["schemas"]["PathsRequest"];
+export type Explanation = components["schemas"]["ExplanationOut"];
 
 const NETWORK_ERROR = "We couldn't reach the server. Please check your connection and try again.";
 const GENERIC_ERROR = "Something went wrong. Please try again.";
@@ -18,10 +22,10 @@ async function detailOf(res: Response): Promise<string> {
 }
 
 /** Every failure becomes an Error with a message a customer can read: never a stack trace. */
-async function getJson<T>(path: string): Promise<T> {
+async function send<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(path);
+    res = await fetch(path, init);
   } catch {
     throw new Error(NETWORK_ERROR);
   }
@@ -29,8 +33,17 @@ async function getJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+const getJson = <T>(path: string) => send<T>(path);
+const postJson = <T>(path: string, body: unknown) =>
+  send<T>(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+const customer = (id: string) => `/api/customers/${encodeURIComponent(id)}`;
+
 export const api = {
   customers: () => getJson<Customer[]>("/api/customers"),
-  overview: (id: string) => getJson<Overview>(`/api/customers/${encodeURIComponent(id)}/overview`),
-  spending: (id: string) => getJson<Spending>(`/api/customers/${encodeURIComponent(id)}/spending`),
+  overview: (id: string) => getJson<Overview>(`${customer(id)}/overview`),
+  spending: (id: string) => getJson<Spending>(`${customer(id)}/spending`),
+  /** Leave `inputs` out for the customer's own defaults, which come back in `inputs_used`. */
+  paths: (id: string, inputs: PathsInputs = {}) => postJson<PathsResult>(`${customer(id)}/paths`, inputs),
+  explanation: (id: string, inputs: PathsInputs = {}) => postJson<Explanation>(`${customer(id)}/explanation`, inputs),
 };

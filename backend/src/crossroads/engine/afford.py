@@ -26,9 +26,9 @@ def apply(option: PathOption, inp: EngineInputs) -> PathOption:
     cash = available_cash(inp)
     if option.upfront_cost > cash:
         gap = cents(option.upfront_cost - cash)
-        shortfalls.append(
-            Shortfall(kind="cash", amount=gap, text=f"needs {fmt_money(gap)} more cash upfront")
-        )
+        # With nothing due up front, the gap is to keeping a month of bills covered, so say that.
+        where = "cash upfront" if option.upfront_cost > 0 else "in the bank to cover a month of bills"
+        shortfalls.append(Shortfall(kind="cash", amount=gap, text=f"needs {fmt_money(gap)} more {where}"))
     return option.model_copy(
         update={"affordable": option.eligible and not shortfalls, "shortfalls": shortfalls}
     )

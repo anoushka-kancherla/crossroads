@@ -95,7 +95,7 @@ def build_facts(inp: EngineInputs, ev: Evaluation, cfg: Config) -> tuple[dict[st
 _FLIP_LABELS = {
     "miles_per_year": "your miles per year",
     "monthly_budget": "your monthly budget",
-    "years_to_keep": "how long you keep the car",
+    "years_to_keep": "your plan for keeping the car",
 }
 
 

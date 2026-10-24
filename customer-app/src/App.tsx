@@ -2,8 +2,9 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { CustomerPicker } from "./components/CustomerPicker";
 import { CustomerProvider } from "./CustomerContext";
 import Overview from "./routes/Overview";
+import Paths from "./routes/Paths";
 
-// The Customer overview is built; Your paths arrives with the paths story.
+// The customer app: the Overview and Your paths screens, with the Demo customer picker above both.
 export default function App() {
   return (
     <CustomerProvider>
@@ -20,7 +21,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Overview />} />
-          <Route path="/paths" element={<p>Your paths is built in the next phase.</p>} />
+          <Route path="/paths" element={<Paths />} />
         </Routes>
       </main>
     </CustomerProvider>

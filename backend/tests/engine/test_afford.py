@@ -48,6 +48,8 @@ def test_negative_available_cash_fails_every_option_even_with_nothing_due(make_l
         assert not o.affordable, path
     keep = apply("keep_as_is", inp, cfg)
     assert keep.shortfalls[0].amount == D("1650.00")
+    # nothing is due up front, so the text names the real gap instead of "cash upfront"
+    assert keep.shortfalls[0].text == "needs $1,650 more in the bank to cover a month of bills"
 
 
 def test_both_shortfalls_are_reported(make_lease, cfg):

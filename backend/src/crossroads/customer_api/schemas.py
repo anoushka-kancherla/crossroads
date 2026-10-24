@@ -6,7 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CustomerListItem(BaseModel):
@@ -92,3 +92,88 @@ class SpendingPoint(BaseModel):
 
 class SpendingResponse(BaseModel):
     months: list[SpendingPoint]
+
+
+PathName = Literal[
+    "keep_as_is", "buy_out", "return_lease_new", "trade_in_early", "refinance", "extra_principal", "walk_away"
+]
+InputName = Literal["miles_per_year", "monthly_budget", "years_to_keep", "financing_rate"]
+
+
+class PathsRequest(BaseModel):
+    """Any input left out takes the customer's own default. Ranges are the slider ranges; the budget
+    maximum is checked per customer, because a customer's default can sit above the standard one."""
+
+    miles_per_year: int | None = Field(default=None, ge=5000, le=25000, multiple_of=100)
+    monthly_budget: Decimal | None = Field(default=None, ge=200, multiple_of=10)
+    years_to_keep: int | None = Field(default=None, ge=1, le=8)
+    financing_rate: Decimal | None = Field(default=None, ge=3, le=12, multiple_of=Decimal("0.25"))
+
+
+class ScenarioOut(BaseModel):
+    miles_per_year: int
+    monthly_budget: Decimal
+    years_to_keep: int
+    financing_rate: Decimal
+
+
+class ShortfallOut(BaseModel):
+    kind: Literal["monthly", "cash"]
+    amount: Decimal
+    text: str
+
+
+class OptionOut(BaseModel):
+    path: PathName
+    label: str
+    eligible: bool
+    ineligible_reason: str | None
+    five_year_cost: Decimal  # whole dollars
+    monthly_payment: Decimal
+    upfront_cost: Decimal
+    affordable: bool
+    shortfalls: list[ShortfallOut]
+    tradeoff: str
+    cumulative_cost: list[Decimal]  # months 1 to 60
+
+
+class ExplanationOut(BaseModel):
+    headline: str
+    text: str
+    source: Literal["gemini", "template"]
+    verified: bool
+
+
+class FlipOut(BaseModel):
+    input: InputName
+    current: Decimal
+    threshold: Decimal
+    to_path: PathName
+    relative_change: Decimal
+    text: str  # rendered by the backend, so the screen never formats a number itself
+
+
+class RecommendationOut(BaseModel):
+    path: PathName | None
+    label: str | None
+    runner_up: PathName | None
+    monthly_room_left: Decimal
+    closest_when_none: PathName | None
+    closest_label: str | None
+    closest_gap: Decimal
+    explanation: ExplanationOut
+
+
+class RangeOut(BaseModel):
+    min: Decimal
+    max: Decimal
+    step: Decimal
+
+
+class PathsResponse(BaseModel):
+    contract_type: Literal["lease", "loan"]
+    inputs_used: ScenarioOut
+    options: list[OptionOut]
+    recommendation: RecommendationOut
+    flips: list[FlipOut]
+    ranges: dict[InputName, RangeOut]
