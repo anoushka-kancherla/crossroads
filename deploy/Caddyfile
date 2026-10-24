@@ -1,0 +1,11 @@
+# Production front door. Caddy gets and renews the TLS certificates by itself.
+# APP_DOMAIN is our .tech domain, or <instance-ip>.nip.io as a fallback (then the hosts are
+# app.<ip>.nip.io and internal.<ip>.nip.io). DNS A records for both must point at this instance.
+
+app.{$APP_DOMAIN} {
+	reverse_proxy customer-app:80
+}
+
+internal.{$APP_DOMAIN} {
+	reverse_proxy internal-app:80
+}

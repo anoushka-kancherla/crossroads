@@ -84,6 +84,17 @@ def test_the_two_sides_are_on_separate_networks_and_only_the_database_is_on_both
     assert _networks(s["db"]) == {"customer-net", "internal-net"}
 
 
+def test_the_production_overlay_publishes_only_80_and_443_and_only_from_caddy():
+    prod = (ROOT / "docker-compose.prod.yml").read_text()
+    assert re.findall(r'^\s+- "(\d+:\d+)"', prod, re.M) == ["80:80", "443:443"]
+    assert "ports: !reset []" in prod.split("customer-app:")[1].split("internal-app:")[0]
+    assert "ports: !reset []" in prod.split("internal-app:")[1].split("customer-api:")[0]
+    assert 'COOKIE_SECURE: "true"' in prod
+    caddy = (ROOT / "deploy" / "Caddyfile").read_text()
+    assert "customer-app:80" in caddy and "internal-app:80" in caddy
+    assert "-api" not in caddy, "Caddy proxies to the apps only, never straight to an API"
+
+
 def test_the_internal_api_publishes_no_port_and_the_customer_side_holds_no_staff_secret():
     s = _compose()
     assert "ports:" not in s["internal-api"] and "ports:" not in s["customer-api"]

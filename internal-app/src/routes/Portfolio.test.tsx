@@ -137,7 +137,9 @@ describe("portfolio dashboard", () => {
     expect(await screen.findByText("Customers retained")).toBeInTheDocument();
     expect(screen.getByText("75%")).toBeInTheDocument();
     expect(screen.getByText("Est. revenue kept").nextSibling).toHaveTextContent("$58,211");
-    expect(screen.getByText("Avg. customer savings").nextSibling).toHaveTextContent("$2,150");
+    expect(screen.getByText("Avg. savings · 11 customers with an affordable option").nextSibling).toHaveTextContent(
+      "$2,150",
+    );
     expect(screen.getByText("Explanations verified").nextSibling).toHaveTextContent("100%");
     expect(screen.getByText(/Across 12 synthetic customers/)).toHaveTextContent("Oct 24, 2026");
 
@@ -229,6 +231,17 @@ describe("staff sign-in", () => {
     signIn();
     expect(await screen.findByText("Customers retained")).toBeInTheDocument();
     expect(screen.getByText("Signed in as staff")).toBeInTheDocument();
+  });
+
+  it("says so, in plain words, when too many attempts have locked the address", async () => {
+    stubFetch({
+      "GET /api/internal/session": unauthorized,
+      "POST /api/internal/login": { status: 429, body: { detail: "Too many attempts. Please try again later." } },
+    });
+    renderApp();
+    await screen.findByRole("form", { name: "Staff sign-in" });
+    signIn("staff", "x");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Too many attempts. Please try again later.");
   });
 
   it("says when sign-in is not set up", async () => {

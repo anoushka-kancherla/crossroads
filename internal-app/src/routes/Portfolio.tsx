@@ -56,7 +56,11 @@ function Dashboard({ data }: { data: PortfolioData }) {
       <div className="tiles">
         <Tile label="Customers retained" value={`${k.retained_pct}%`} sub="Recommended path keeps them with Toyota" />
         <Tile label="Est. revenue kept" value={money(k.revenue_total)} sub="Over 5 years" />
-        <Tile label="Avg. customer savings" value={money(k.avg_savings)} sub="Versus doing nothing" />
+        <Tile
+          label={`Avg. savings · ${count(data.customers_total - data.no_recommendation)} customers with an affordable option`}
+          value={money(k.avg_savings)}
+          sub="Versus doing nothing"
+        />
         <Tile label="Explanations verified" value={`${k.explanations_verified_pct}%`} sub="Passed the number check" />
       </div>
       <div className="columns">

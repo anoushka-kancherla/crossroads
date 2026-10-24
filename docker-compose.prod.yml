@@ -1,0 +1,45 @@
+# Production overlay: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Only Caddy publishes ports (80 and 443). The database and both APIs stay unpublished, and the two
+# app containers are reachable only through Caddy.
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?set APP_DOMAIN in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    # It proxies only to the two app containers, never to an API or the database.
+    networks: [customer-net, internal-net]
+    depends_on:
+      - customer-app
+      - internal-app
+
+  customer-app:
+    ports: !reset []
+    restart: unless-stopped
+
+  internal-app:
+    ports: !reset []
+    restart: unless-stopped
+
+  customer-api:
+    restart: unless-stopped
+
+  internal-api:
+    restart: unless-stopped
+    environment:
+      COOKIE_SECURE: "true"
+
+  db:
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

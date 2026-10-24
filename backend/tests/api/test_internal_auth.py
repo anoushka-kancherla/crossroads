@@ -38,7 +38,7 @@ def creds():
     )
 
 
-def build(creds, *, secure=False, clock=None, **override):
+def build(creds, *, secure=False, clock=None, peer="93.184.216.34", **override):
     f = dict(staff_user=creds.user, staff_password_hash=creds.hash, session_secret=creds.secret, cookie_secure=secure)
     f.update(override)
     settings = Settings(
@@ -47,7 +47,7 @@ def build(creds, *, secure=False, clock=None, **override):
     app = create_app(
         settings=settings, store=InMemoryStore(PROFILES), snapshots=InMemorySnapshots(), clock=clock or Clock()
     )
-    return TestClient(app), app
+    return TestClient(app, client=(peer, 50000)), app
 
 
 def sign_in(client, creds):
@@ -239,3 +239,108 @@ def test_the_hash_command_refuses_mismatched_entries_and_bad_usage(creds, monkey
     assert "$argon2" not in capsys.readouterr().out
     assert auth.main(["auth", creds.password]) == 2  # a password on the command line is not accepted
     assert creds.password not in capsys.readouterr().out
+
+
+# --- sign-in rate limit (FR-036) ---
+
+BAD = {"username": "staff", "password": "definitely-wrong"}
+PROXY = "10.0.0.2"  # a private address: the proxy in front of the API
+
+
+def fail(client, n=1, body=BAD, headers=None):
+    return [client.post(f"{URL}/login", json=body, headers=headers or {}) for _ in range(n)][-1]
+
+
+def test_five_failures_lock_the_address_with_429_and_a_retry_delay(creds):
+    client, _ = build(creds)
+    assert [fail(client).status_code for _ in range(5)] == [401] * 5
+    locked = fail(client)
+    assert locked.status_code == 429 and locked.json() == {"detail": "Too many attempts. Please try again later."}
+    assert locked.headers["retry-after"] == "900"
+
+
+def test_a_locked_address_is_refused_even_with_the_right_password(creds):
+    client, _ = build(creds)
+    fail(client, 5)
+    r = client.post(f"{URL}/login", json={"username": creds.user, "password": creds.password})
+    assert r.status_code == 429 and "set-cookie" not in r.headers
+
+
+def test_the_lock_ends_after_fifteen_minutes_and_the_retry_delay_counts_down(creds):
+    clock = Clock()
+    client, _ = build(creds, clock=clock)
+    fail(client, 5)
+    clock.now += 600
+    assert fail(client).headers["retry-after"] == "300"
+    clock.now += 301
+    sign_in(client, creds)
+
+
+def test_failures_older_than_fifteen_minutes_do_not_count(creds):
+    clock = Clock()
+    client, _ = build(creds, clock=clock)
+    fail(client, 4)
+    clock.now += 901
+    assert fail(client).status_code == 401  # a fresh count of one, so no lock
+    assert fail(client, 4).status_code == 401  # the fifth in the new window is still answered 401 ...
+    assert fail(client).status_code == 429  # ... and locks from the next attempt
+
+
+def test_a_successful_sign_in_resets_the_count(creds):
+    client, _ = build(creds)
+    fail(client, 4)
+    sign_in(client, creds)
+    assert [fail(client).status_code for _ in range(4)] == [401] * 4  # not locked: the count started over
+
+
+def test_a_different_address_is_not_affected(creds):
+    clock = Clock()
+    _, app = build(creds, clock=clock)
+    a = TestClient(app, client=("93.184.216.34", 1))
+    b = TestClient(app, client=("151.101.2.9", 1))
+    fail(a, 5)
+    assert fail(a).status_code == 429
+    r = b.post(f"{URL}/login", json={"username": creds.user, "password": creds.password})
+    assert r.status_code == 204
+
+
+def test_the_lock_does_not_depend_on_the_username_so_it_reveals_nothing_about_it(creds):
+    client, _ = build(creds)
+    for name in ("staff", "nobody", "admin", "staff", "x"):
+        fail(client, body={"username": name, "password": "wrong"})
+    a = fail(client, body={"username": "staff", "password": "wrong"})
+    b = fail(client, body={"username": "nobody", "password": "wrong"})
+    assert (a.status_code, a.json(), a.headers["retry-after"]) == (b.status_code, b.json(), b.headers["retry-after"])
+
+
+def test_the_forwarded_address_is_used_only_when_the_request_comes_from_the_proxy(creds):
+    _, app = build(creds)
+    proxy = TestClient(app, client=(PROXY, 1))
+    fail(proxy, 5, headers={"X-Forwarded-For": "151.101.2.50"})
+    assert fail(proxy, headers={"X-Forwarded-For": "151.101.2.50"}).status_code == 429
+    other = proxy.post(f"{URL}/login", json=BAD, headers={"X-Forwarded-For": "151.101.2.51"})
+    assert other.status_code == 401, "a different client behind the same proxy is not locked"
+
+
+def test_a_direct_client_cannot_dodge_the_lock_by_sending_its_own_forwarded_header(creds):
+    client, _ = build(creds, peer="93.184.216.34")
+    for i in range(5):
+        fail(client, headers={"X-Forwarded-For": f"151.101.2.{i}"})
+    assert fail(client, headers={"X-Forwarded-For": "151.101.2.99"}).status_code == 429
+
+
+def test_behind_the_proxy_a_forged_leftmost_entry_does_not_help(creds):
+    _, app = build(creds)
+    proxy = TestClient(app, client=(PROXY, 1))
+    # The proxy appends the real client last; anything the client put before it is ignored.
+    for i in range(5):
+        fail(proxy, headers={"X-Forwarded-For": f"9.9.9.{i}, 151.101.2.77"})
+    assert fail(proxy, headers={"X-Forwarded-For": "9.9.9.200, 151.101.2.77"}).status_code == 429
+
+
+def test_requests_that_are_not_sign_in_attempts_are_not_counted(creds):
+    client, _ = build(creds)
+    for _ in range(8):
+        client.get(f"{URL}/session")
+        client.post(f"{URL}/login", json={"username": creds.user})  # malformed: 422
+    sign_in(client, creds)

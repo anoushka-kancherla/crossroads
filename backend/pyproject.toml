@@ -16,7 +16,7 @@ dependencies = [
   "httpx>=0.27",
   "google-genai>=1.0",
   "Faker>=30.0",
-  "argon2-cffi>=23.1",
+  "argon2-cffi==25.1.0",  # pinned: the version the tests ran on is the version the image installs
 ]
 
 [project.optional-dependencies]

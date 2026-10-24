@@ -8,7 +8,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from ..config import Config
 from ..customer_api.store import CustomerStore
 from ..explain.service import ExplainService
-from .auth import COOKIE, COOKIE_PATH, SESSION_SECONDS, AuthState, check_credentials, make_token, require_staff
+from .auth import (
+    COOKIE,
+    COOKIE_PATH,
+    SESSION_SECONDS,
+    AuthState,
+    check_credentials,
+    client_ip,
+    make_token,
+    require_staff,
+)
 from .portfolio_service import build_portfolio, refresh_snapshots
 from .schemas import LoginRequest, PortfolioResponse, SessionOut
 from .snapshots import SnapshotStore
@@ -21,9 +30,18 @@ def login(body: LoginRequest, request: Request, response: Response):
     auth: AuthState = request.app.state.auth
     if not auth.configured:
         raise HTTPException(status_code=503, detail="Staff sign-in is not configured.")
+    ip, now = client_ip(request), auth.clock()
+    # A locked address is refused before the password is looked at, so the answer says nothing about it.
+    wait = auth.limiter.retry_after(ip, now)
+    if wait:
+        raise HTTPException(
+            status_code=429, detail="Too many attempts. Please try again later.", headers={"Retry-After": str(wait)}
+        )
     # One message for a wrong username and a wrong password, so neither can be told apart.
     if not check_credentials(auth.user, auth.password_hash, body.username, body.password):
+        auth.limiter.record_failure(ip, now)
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    auth.limiter.reset(ip)
     response.set_cookie(
         COOKIE,
         make_token(auth.user, auth.secret, auth.clock()),

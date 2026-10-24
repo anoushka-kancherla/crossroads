@@ -15,6 +15,7 @@ import base64
 import getpass
 import hashlib
 import hmac
+import ipaddress
 import json
 import secrets
 import sys
@@ -80,6 +81,68 @@ def read_token(token: str, secret: str, now: float) -> dict | None:
         return None
 
 
+FAIL_LIMIT = 5  # failed sign-ins from one address ...
+FAIL_WINDOW = 15 * 60  # ... within this many seconds lock it ...
+LOCK_SECONDS = 15 * 60  # ... for this many (FR-036)
+
+
+def _is_proxy(address: str) -> bool:
+    """True for a private or loopback peer: the proxy in front of the API, not a browser on the internet."""
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return False
+    return ip.is_private or ip.is_loopback
+
+
+def client_ip(request: Request) -> str:
+    """The address the sign-in limit is counted against. X-Forwarded-For is believed only when the
+    request itself comes from the proxy, and then only its rightmost public entry (each proxy appends the
+    address it saw, so anything a client wrote earlier in the list is ignored). If every entry is private,
+    as on a local Docker network, the proxy's own address is used: everyone then shares one count."""
+    peer = request.client.host if request.client else "unknown"
+    if not _is_proxy(peer):
+        return peer
+    for hop in reversed([h.strip() for h in request.headers.get("x-forwarded-for", "").split(",")]):
+        try:
+            ip = ipaddress.ip_address(hop)
+        except ValueError:
+            continue
+        if not (ip.is_private or ip.is_loopback):
+            return str(ip)
+    return peer
+
+
+@dataclass
+class LoginLimiter:
+    """Counts failed sign-ins per address. Whether the username exists never enters into it.
+    ponytail: in memory, so a restart clears every lock; shared storage (Redis) if there is ever more than
+    one API process."""
+
+    failures: dict[str, list[float]] = field(default_factory=dict)
+    locked_until: dict[str, float] = field(default_factory=dict)
+
+    def retry_after(self, ip: str, now: float) -> int:
+        """Whole seconds left on the lock for this address, or 0 when it is not locked."""
+        until = self.locked_until.get(ip, 0.0)
+        return max(0, int(until - now + 0.999)) if until > now else 0
+
+    def record_failure(self, ip: str, now: float) -> None:
+        # Drop what has aged out everywhere, so the tables do not grow without bound.
+        self.locked_until = {k: u for k, u in self.locked_until.items() if u > now}
+        self.failures = {k: [t for t in ts if now - t < FAIL_WINDOW] for k, ts in self.failures.items()}
+        self.failures = {k: ts for k, ts in self.failures.items() if ts}
+        recent = self.failures.setdefault(ip, [])
+        recent.append(now)
+        if len(recent) >= FAIL_LIMIT:
+            self.locked_until[ip] = now + LOCK_SECONDS
+            del self.failures[ip]
+
+    def reset(self, ip: str) -> None:
+        self.failures.pop(ip, None)
+        self.locked_until.pop(ip, None)
+
+
 @dataclass
 class AuthState:
     user: str
@@ -90,6 +153,7 @@ class AuthState:
     # jti -> expiry of signed-out sessions. In memory, so it resets on a restart (a sign-out then only
     # lasts until the 8 hours are up). ponytail: shared storage if there is ever more than one process.
     revoked: dict[str, int] = field(default_factory=dict)
+    limiter: LoginLimiter = field(default_factory=LoginLimiter)
 
     @property
     def configured(self) -> bool:
