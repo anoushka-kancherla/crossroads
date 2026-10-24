@@ -1,31 +1,76 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api, type PathOption, type PathsResult } from "../api/client";
+import { NextStep } from "../components/NextStep";
 import { QueryState } from "../components/QueryState";
+import { Sliders, type Values, valuesOf } from "../components/Sliders";
 import { useCustomer } from "../CustomerContext";
 import { money } from "../format";
 
 const COLORS = ["#1f6feb", "#d97706", "#059669", "#9333ea", "#dc2626"];
+const DEBOUNCE_MS = 250;
+
+function useDebounced<T>(value: T, ms: number): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return settled;
+}
 
 export default function Paths() {
   const { customerId } = useCustomer();
+  if (customerId === null) return <p>Pick a demo customer to see their paths.</p>;
+  // Keyed by customer, so switching customers starts again from that customer's own defaults.
+  return <PathsScreen key={customerId} customerId={customerId} />;
+}
+
+function PathsScreen({ customerId }: { customerId: string }) {
+  // null means "the customer's own defaults"; the server reports them back in `inputs_used`.
+  const [inputs, setInputs] = useState<Values | null>(null);
+  const settled = useDebounced(inputs, DEBOUNCE_MS);
   const paths = useQuery({
-    queryKey: ["paths", customerId],
-    queryFn: () => api.paths(customerId as string),
-    enabled: customerId !== null,
+    queryKey: ["paths", customerId, settled],
+    queryFn: () => api.paths(customerId, settled ?? {}),
+    placeholderData: keepPreviousData, // the old results stay while the new ones load
+    retry: false,
   });
 
-  if (customerId === null) return <p>Pick a demo customer to see their paths.</p>;
+  // The last results that came back fine: if a new request is rejected they stay on screen.
+  const lastGood = useRef<PathsResult>();
+  useEffect(() => {
+    if (paths.data) lastGood.current = paths.data;
+  }, [paths.data]);
+  const shown = paths.data ?? lastGood.current;
+
+  if (shown === undefined) {
+    return (
+      <QueryState status={paths.status} error={paths.error} data={undefined}>
+        {() => null}
+      </QueryState>
+    );
+  }
+  if (shown.options.length === 0) return <p>No paths are available for this customer.</p>;
+
   return (
-    <QueryState
-      status={paths.status}
-      error={paths.error}
-      data={paths.data}
-      isEmpty={(d) => d.options.length === 0}
-      emptyMessage="No paths are available for this customer."
-    >
-      {(d) => <PathsBody data={d} customerId={customerId} />}
-    </QueryState>
+    <div className="paths-layout">
+      <aside>
+        <Sliders
+          values={inputs ?? valuesOf(shown.inputs_used)}
+          ranges={shown.ranges}
+          contractType={shown.contract_type}
+          busy={paths.isFetching}
+          onChange={setInputs}
+          onReset={() => setInputs(null)}
+        />
+      </aside>
+      <div className="paths-main">
+        {paths.isError && <p role="alert">{paths.error.message}</p>}
+        <PathsBody data={shown} customerId={customerId} />
+      </div>
+    </div>
   );
 }
 
@@ -59,6 +104,7 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
             </span>
           )}
         </p>
+        <NextStep key={rec.path ?? "none"} customerId={customerId} path={rec.path} />
       </section>
 
       <section className="panel" aria-labelledby="flips-title">
@@ -92,6 +138,15 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
         <h2 id="chart-title">Cost over time, by path</h2>
         <p className="basis">Cumulative cost per path over 60 months, recommended path highlighted</p>
         <CostChart options={data.options} recommended={rec.path} />
+      </section>
+
+      <section className="panel" aria-labelledby="assumptions-title">
+        <h2 id="assumptions-title">Assumptions behind these numbers</h2>
+        <ul className="assumptions">
+          {data.assumptions.map((a) => (
+            <li key={a}>{a}</li>
+          ))}
+        </ul>
       </section>
     </div>
   );

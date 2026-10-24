@@ -3,15 +3,19 @@
 Skipped unless CROSSROADS_TEST_DB_URL points at a TimescaleDB (see test_seed_integration.py).
 """
 
+import json
 import os
+from pathlib import Path
 
 import pytest
 
 psycopg = pytest.importorskip("psycopg")
 from psycopg.conninfo import make_conninfo  # noqa: E402
 
+from crossroads.adapters.dealers import DealerLookupError, FakeDealers, parse_maps_results  # noqa: E402
 from crossroads.adapters.nessie import FakeNessie  # noqa: E402
 from crossroads.config import Config  # noqa: E402
+from crossroads.customer_api.dealers_service import nearby_dealers  # noqa: E402
 from crossroads.customer_api.overview import build_overview, build_spending  # noqa: E402
 from crossroads.customer_api.store import DbStore  # noqa: E402
 from crossroads.db.repo import apply_schema, connect, make_pool, refresh_aggregates  # noqa: E402
@@ -87,3 +91,49 @@ def test_the_overview_and_spending_responses_match(stores):
 
 def test_an_unknown_customer_is_none(stores):
     assert stores[0].get_record("nobody") is None
+
+
+CAPTURED = json.loads((Path(__file__).parent.parent / "fixtures" / "serpapi_maps_toyota.json").read_text())
+
+
+def test_the_dealer_cache_round_trips_and_does_not_duplicate(stores):
+    db, _ = stores
+    dealers = parse_maps_results(CAPTURED)
+    assert db.dealer_candidates("99999") is None  # never looked up
+    db.save_dealer_candidates("99999", dealers)
+    db.save_dealer_candidates("99999", dealers)  # saving again updates rather than duplicating
+    got = db.dealer_candidates("99999")
+    assert len(got) == len(dealers) == 12
+    assert set(got) == set(dealers)
+
+
+def test_dealers_are_ranked_from_the_cache_by_the_customers_own_coordinates(stores):
+    db, _ = stores
+    rec = db.get_record("cust_01")
+    db.save_dealer_candidates(rec.zip, parse_maps_results(CAPTURED))
+    top = nearby_dealers(db, None, rec)  # no client: it must come from the cache
+    assert [d.name for d in top][0] == "Toyota of Plano" and len(top) == 3
+
+
+def test_the_seed_pre_warms_each_zip_once_and_a_failed_zip_does_not_stop_the_rest(db_url):
+    zips = {p.zip for p in PROFILES}
+    conn = connect(db_url, autocommit=True)
+    conn.execute("DELETE FROM dealer_cache")
+    fake = FakeDealers(parse_maps_results(CAPTURED))
+    assert seed(conn, FakeNessie(), PROFILES, fake) == []
+    assert fake.calls == len(zips)
+    assert seed(conn, FakeNessie(), PROFILES, fake) == []
+    assert fake.calls == len(zips), "a cached ZIP must not be searched again"
+
+    conn.execute("DELETE FROM dealer_cache")
+
+    class OneZipDown:
+        def search(self, zip_code, lat, lng):
+            if zip_code == "75024":
+                raise DealerLookupError("down")
+            return parse_maps_results(CAPTURED)
+
+    assert seed(conn, FakeNessie(), PROFILES, OneZipDown()) == ["75024"]
+    cached = {r[0] for r in conn.execute("SELECT DISTINCT zip FROM dealer_cache")}
+    assert cached == zips - {"75024"}
+    conn.close()

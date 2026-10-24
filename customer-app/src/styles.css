@@ -41,6 +41,24 @@ h1 { margin: 0; font-size: 1.6rem; }
   font-weight: 600; text-decoration: none; color: inherit;
 }
 .paths { display: grid; gap: 1rem; }
+.paths-layout { display: grid; grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+@media (max-width: 800px) { .paths-layout { grid-template-columns: 1fr; } }
+.paths-main { display: grid; gap: 1rem; min-width: 0; }
+.sliders h2 { margin-bottom: 0.75rem; }
+.slider { margin-bottom: 1.1rem; }
+.slider-head { display: flex; justify-content: space-between; font-weight: 600; }
+.slider input[type="range"] { width: 100%; }
+.slider-ends { display: flex; justify-content: space-between; font-size: 0.8rem; color: #555; }
+button.primary, button.secondary { font: inherit; padding: 0.7rem 1.2rem; border: 2px solid #111; cursor: pointer; }
+button.primary { background: #eee; font-weight: 600; }
+button.secondary { background: #fff; }
+button:disabled { opacity: 0.6; cursor: default; }
+.next-step { margin-top: 1rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.confirmation { margin: 0.75rem 0 0; font-weight: 600; }
+.dealers { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.dealers li { border: 1px solid #999; padding: 0.5rem 0.75rem; }
+.assumptions { margin: 0; padding-left: 1.2rem; }
 .recommend { border: 3px double #111; }
 .recommend h1 { margin: 0.25rem 0 0.5rem; }
 .eyebrow { margin: 0; font-size: 0.85rem; color: #555; }

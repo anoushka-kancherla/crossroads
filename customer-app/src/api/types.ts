@@ -76,6 +76,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customers/{customer_id}/dealers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dealers
+         * @description The three Toyota dealers nearest this customer, nearest first. An empty list is a valid answer.
+         */
+        get: operations["dealers_api_customers__customer_id__dealers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customers/{customer_id}/next-step": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Next Step
+         * @description Confirm the customer's chosen next step, or a request to talk to a specialist. Stateless: it
+         *     starts no transaction and stores nothing.
+         */
+        post: operations["next_step_api_customers__customer_id__next_step_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/{customer_id}/explanation": {
         parameters: {
             query?: never;
@@ -145,6 +186,24 @@ export interface components {
             contract_type: "lease" | "loan";
             /** Months Left */
             months_left: number;
+        };
+        /** DealerOut */
+        DealerOut: {
+            /** Name */
+            name: string;
+            /** Address */
+            address: string;
+            /** Hours */
+            hours: string | null;
+            /** Rating */
+            rating: number | null;
+            /** Distance Miles */
+            distance_miles: number;
+        };
+        /** DealersResponse */
+        DealersResponse: {
+            /** Dealers */
+            dealers: components["schemas"]["DealerOut"][];
         };
         /** ExplanationOut */
         ExplanationOut: {
@@ -236,6 +295,26 @@ export interface components {
             /** Room For Payment */
             room_for_payment: string;
         };
+        /** NextStepRequest */
+        NextStepRequest: {
+            /**
+             * Path
+             * @enum {string}
+             */
+            path: "keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "primary" | "specialist";
+        };
+        /** NextStepResponse */
+        NextStepResponse: {
+            /** Path Label */
+            path_label: string;
+            /** Confirmation */
+            confirmation: string;
+        };
         /** OptionOut */
         OptionOut: {
             /**
@@ -304,6 +383,8 @@ export interface components {
             ranges: {
                 [key: string]: components["schemas"]["RangeOut"];
             };
+            /** Assumptions */
+            assumptions: string[];
         };
         /** Projection */
         Projection: {
@@ -537,6 +618,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PathsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dealers_api_customers__customer_id__dealers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DealersResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    next_step_api_customers__customer_id__next_step_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NextStepRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NextStepResponse"];
                 };
             };
             /** @description Validation Error */

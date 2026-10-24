@@ -9,6 +9,8 @@ from pathlib import Path
 import psycopg
 from psycopg_pool import ConnectionPool
 
+from ..adapters.dealers import Dealer
+
 SCHEMA = Path(__file__).with_name("schema.sql")
 CONTINUOUS_AGGREGATES = ("monthly_miles", "monthly_payments", "monthly_spend")
 # Months are bucketed in UTC, so every session must run in UTC whatever the server default is.
@@ -49,6 +51,31 @@ def refresh_aggregates(conn: psycopg.Connection) -> None:
         raise ValueError("refresh_aggregates needs an autocommit connection")
     for name in CONTINUOUS_AGGREGATES:
         conn.execute(f"CALL refresh_continuous_aggregate('{name}', NULL, NULL)")
+
+
+def dealer_candidates(conn: psycopg.Connection, zip_code: str) -> list[Dealer] | None:
+    """The cached dealers for a ZIP, or None when that ZIP has never been looked up."""
+    rows = conn.execute(
+        "SELECT name, address, hours, rating, lat, lng FROM dealer_cache WHERE zip = %s ORDER BY name",
+        (zip_code,),
+    ).fetchall()
+    if not rows:
+        return None
+    return [
+        Dealer(name, address, hours, float(rating) if rating is not None else None, lat, lng)
+        for name, address, hours, rating, lat, lng in rows
+    ]
+
+
+def save_dealer_candidates(conn: psycopg.Connection, zip_code: str, dealers: list[Dealer]) -> None:
+    for d in dealers:
+        conn.execute(
+            """INSERT INTO dealer_cache (zip, name, address, hours, rating, lat, lng)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (zip, name, address) DO UPDATE SET hours = EXCLUDED.hours,
+                 rating = EXCLUDED.rating, lat = EXCLUDED.lat, lng = EXCLUDED.lng, fetched_at = now()""",
+            (zip_code, d.name, d.address, d.hours, d.rating, d.lat, d.lng),
+        )
 
 
 def readings(conn: psycopg.Connection, customer_id: str) -> list[tuple[date, int]]:

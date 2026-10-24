@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime, time
 from decimal import Decimal
 
+from ..adapters.dealers import Dealer
 from ..customer_api.store import CustomerListEntry, CustomerRecord, VehicleInfo
 from .profiles import AS_OF, Profile, synthetic_quote
 
@@ -21,6 +22,13 @@ def _month(d: date) -> date:
 class InMemoryStore:
     def __init__(self, profiles: list[Profile]):
         self._profiles = {p.id: p for p in sorted(profiles, key=lambda p: p.id)}
+        self._dealers: dict[str, list[Dealer]] = {}
+
+    def dealer_candidates(self, zip_code: str) -> list[Dealer] | None:
+        return self._dealers.get(zip_code)
+
+    def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None:
+        self._dealers[zip_code] = list(dealers)
 
     def list_customers(self) -> list[CustomerListEntry]:
         return [CustomerListEntry(p.id, p.display_name, p.vehicle_label) for p in self._profiles.values()]

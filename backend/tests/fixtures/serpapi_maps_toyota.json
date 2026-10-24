@@ -1,0 +1,1074 @@
+{
+  "search_metadata": {
+    "id": "6add17f2a97f5275d73c19a8",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/OD3csuPok_ZFpWd9df-hJfUlzTRJZ6nqm_3EOy9cpz4/6add17f2a97f5275d73c19a8.json",
+    "markdown_endpoint": "https://serpapi.com/searches/OD3csuPok_ZFpWd9df-hJfUlzTRJZ6nqm_3EOy9cpz4/6add17f2a97f5275d73c19a8.md",
+    "created_at": "2026-10-24 20:41:22 UTC",
+    "processed_at": "2026-10-24 20:41:22 UTC",
+    "google_maps_url": "https://www.google.com/maps/search/Toyota+dealer/@33.0762,-96.8239,12z/data=!3m1!4b1!4m2!2m1!6e5?hl=en",
+    "raw_html_file": "https://serpapi.com/searches/OD3csuPok_ZFpWd9df-hJfUlzTRJZ6nqm_3EOy9cpz4/6add17f2a97f5275d73c19a8.html",
+    "prettify_html_file": "https://serpapi.com/searches/OD3csuPok_ZFpWd9df-hJfUlzTRJZ6nqm_3EOy9cpz4/6add17f2a97f5275d73c19a8.prettify",
+    "total_time_taken": 1.16
+  },
+  "search_parameters": {
+    "engine": "google_maps",
+    "type": "search",
+    "q": "Toyota dealer",
+    "ll": "@33.0762,-96.8239,12z",
+    "google_domain": "google.com",
+    "hl": "en"
+  },
+  "search_information": {
+    "local_results_state": "Results for exact spelling",
+    "query_displayed": "Toyota dealer"
+  },
+  "local_results": [
+    {
+      "position": 1,
+      "title": "Texas Toyota of Grapevine",
+      "place_id": "ChIJE2Mq3uEqTIYRRqpuxRS8ytE",
+      "data_id": "0x864c2ae1de2a6313:0xd1cabc14c56eaa46",
+      "data_cid": "15117101896620223046",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c2ae1de2a6313%3A0xd1cabc14c56eaa46&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c2ae1de2a6313%3A0xd1cabc14c56eaa46&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9249836,
+        "longitude": -97.06926179999999
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJE2Mq3uEqTIYRRqpuxRS8ytE",
+      "provider_id": "/g/1ptxvs2mx",
+      "rating": 4.4,
+      "reviews": 10482,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Car manufacturer",
+        "Motor vehicle dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "701 E State Hwy 114, Grapevine, TX 76051",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "7 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–9 PM",
+        "tuesday": "7 AM–9 PM",
+        "wednesday": "7 AM–9 PM",
+        "thursday": "7 AM–9 PM",
+        "friday": "7 AM–9 PM"
+      },
+      "phone": "(817) 329-5949",
+      "website": "https://www.toyotaofgrapevine.com/?utm_source=google&utm_medium=listing&utm_campaign=google-my-business",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfHqEUWYZ1FzGUypRfMZJpjLnGBlTiTzX3xPYoYavHEJ4j1Mtu7v2-vVaE74KES1vScJgfxulwii4xX6Ipd3fmXGsRT6d5M0Jci38h2zF90R2XL-hgmth2-SnjnunpgfmM5ts26=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/Nii9CXicHcRJDoIwAADAF1VKQVwSD5ogipAYQAVvpNIWpIu2IPJB3-BvTJzDfD_MGKWXltUyZ0KlpG3V6eqJpTCVMBMsuUWfpdYAa2u93tx5RHYP_3QprvZ2DE5vlZD4GqomEsGmzepszJ3hWMii7Hd-6DZ2bLpZj0B_Lv2Ze_BTu09xSMnQta-6dofc26ubQ3ge6CTzbtMYhrh25gyN2wVMUB4BRrlhCKSiEZ1QlPB4ajTyVi8bQgjYfwzED6trRQs"
+    },
+    {
+      "position": 2,
+      "title": "Longo Toyota of Prosper",
+      "place_id": "ChIJO5Dg4jI_TIYRZ38RsnTbWh4",
+      "data_id": "0x864c3f32e2e0903b:0x1e5adb74b2117f67",
+      "data_cid": "2187301863291977575",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c3f32e2e0903b%3A0x1e5adb74b2117f67&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c3f32e2e0903b%3A0x1e5adb74b2117f67&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.2208444,
+        "longitude": -96.8333734
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJO5Dg4jI_TIYRZ38RsnTbWh4",
+      "provider_id": "/g/11f01c_n_f",
+      "rating": 4.8,
+      "reviews": 8364,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Auto repair shop",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Oil change service",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "2100 W University Dr, Prosper, TX 75078",
+      "country": "United States",
+      "open_state": "Open · Closes 8:30 PM",
+      "hours": "Open · Closes 8:30 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–8:30 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–8:30 PM",
+        "tuesday": "8:30 AM–8:30 PM",
+        "wednesday": "8:30 AM–8:30 PM",
+        "thursday": "8:30 AM–8:30 PM",
+        "friday": "8:30 AM–8:30 PM"
+      },
+      "phone": "(972) 346-5800",
+      "website": "https://www.longotoyotaofprosper.com/?utm_source=GMB_profile&utm_medium=organic",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom",
+            "Wheelchair accessible seating"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBxkZbbJvJrvgfg4JXDCU2Ml2gkHjBjUsJmw3qf1_Jtr1lSCPgODm8IiQDHiiWl03e7CDj9lZcRAQ6ud4zskYy-M5PJ-9zrkf2ZcHPum-xFGfdS3OakjxDNHR7-0qYchJzEcNE=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/YZZTUnicHcTbDoIgAADQLyJRu289qFTGupitVb60IkEFtADL_MG-ob9p6zyc7ycz5q7HliUyt8Oqiom01qkiVWnS0nRIJS2mLloDoi3P87lcUr_hyfWKn1g9GWVdfETB3lkJh_Gw8Iu9xvLlPqh9xkbZYhdEbIPkcJFvUZjnBwHddBCgYiQSEnvbfn3rtpqf3mDVizAYtYpTJyFhVEvQzOb0tnM3F140aB3GAwAfJ5LhdkrW08nLhhCC7D8B5Q-m_kTD"
+    },
+    {
+      "position": 3,
+      "title": "Toyota of Richardson",
+      "place_id": "ChIJ32GgDhUfTIYRDJeqPukcPRg",
+      "data_id": "0x864c1f150ea061df:0x183d1ce93eaa970c",
+      "data_cid": "1746584018593945356",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c1f150ea061df%3A0x183d1ce93eaa970c&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c1f150ea061df%3A0x183d1ce93eaa970c&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9643661,
+        "longitude": -96.724919
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJ32GgDhUfTIYRDJeqPukcPRg",
+      "provider_id": "/g/1vfp40mg",
+      "rating": 4.4,
+      "reviews": 12447,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Car manufacturer",
+        "Motor vehicle dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "1221 N Central Expy, Richardson, TX 75080",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "7 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–9 PM",
+        "tuesday": "7 AM–9 PM",
+        "wednesday": "7 AM–9 PM",
+        "thursday": "7 AM–9 PM",
+        "friday": "7 AM–9 PM"
+      },
+      "phone": "(972) 201-9228",
+      "website": "https://www.toyotaofrichardson.com/?utm_source=google&utm_medium=listing&utm_campaign=google-my-business",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLejNNx_nW2w3Y-nvlHll1c5cDpjRQs6hMaebekoGrWcLSl9ZraUub3AefqUX3ewosc6pY1kRQ61Fk1F3uN3EPythqzxwV05kRuQypY9RwB4CMK6g1j2L1R4sYk3q69ga7dF9-FHrg=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/dwKYtXicHcRRboMgAADQE6FSKo1L-mG7WZNaU1m61v0sljGIICjgaHfDHaG3WbL38R6_wvvRPcWxEijixnDFZscsNdoz7SNqhpjbzjlAXZznGzlUrK_r24c-LwJqgf5WpVKQpvR57EnjsDh07Mqk2dkzrV5V9m6703xFOfuaThfEgnEUjy2UpMGwkLBAc41ejncvpp9beEtSSebmPrYZCZvl9rDHHPaLCpKlayWacMa71WeRgaK0fB1gkiRA_E-B_gN53EWs"
+    },
+    {
+      "position": 4,
+      "title": "Toyota of Plano",
+      "place_id": "ChIJLw4cxLMjTIYRYfHBVW8YjCc",
+      "data_id": "0x864c23b3c41c0e2f:0x278c186f55c1f161",
+      "data_cid": "2849679530677891425",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c23b3c41c0e2f%3A0x278c186f55c1f161&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c23b3c41c0e2f%3A0x278c186f55c1f161&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.0817364,
+        "longitude": -96.848243
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJLw4cxLMjTIYRYfHBVW8YjCc",
+      "provider_id": "/g/1tkl3ql1",
+      "rating": 4.5,
+      "reviews": 9823,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "6888 State Hwy 121, Plano, TX 75024",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–9 PM",
+        "tuesday": "8:30 AM–9 PM",
+        "wednesday": "8:30 AM–9 PM",
+        "thursday": "8:30 AM–9 PM",
+        "friday": "8:30 AM–9 PM"
+      },
+      "phone": "(469) 399-5990",
+      "website": "http://www.toyotaofplano.com/?utm_source=google&utm_medium=organic&utm_campaign=GMBMain",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfRy2Si0BNeA8Q3YKdFKQ08cYAY6AH-8Yll5Amca0tgkqAJI7y6aKN68UQq0RZRvS1mf4TJgtFsOqGRwqPQSdDATsqt67bBDBXtKPcYgw_N-XB7f47YHB-qLWDQU2GIRdBFuf_2NQ=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/-YcohnicHcRdDoIgAADgE6Fopa6tB5izUmeCtaKXZqjY_AvBXEfsCN2mre_h-35qrZ9qbZptvTDEMIi2nFQ58qHXZa8NPnSmGHOlAFcmQrjp4oq-7ewBcVIijyxYVAQRgR5niDloBzzWtivU8Rxq0UgU7t23k0eJ452IhPRKX5nVVctjKHSgDnJLZ5mSrPDRUUntuHfs44uOUs7EfEvABbvV0mU7DGR89snJ3u5pgYOputkJ2cwWhBDU_znofzGiQwM"
+    },
+    {
+      "position": 5,
+      "title": "Pat Lobb Toyota of McKinney",
+      "place_id": "ChIJqzg5QF4RTIYR8sit23SfpdI",
+      "data_id": "0x864c115e403938ab:0xd2a59f74dbadc8f2",
+      "data_cid": "15178713443372746994",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c115e403938ab%3A0xd2a59f74dbadc8f2&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c115e403938ab%3A0xd2a59f74dbadc8f2&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.1675338,
+        "longitude": -96.643928
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJqzg5QF4RTIYR8sit23SfpdI",
+      "provider_id": "/g/1tfwqc9l",
+      "rating": 4.6,
+      "reviews": 11247,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Auto parts store",
+        "Auto repair shop",
+        "Car dealer",
+        "Car finance and loan company",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "3350 Central Expy, McKinney, TX 75070",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–9 PM",
+        "tuesday": "8:30 AM–9 PM",
+        "wednesday": "8:30 AM–9 PM",
+        "thursday": "8:30 AM–9 PM",
+        "friday": "8:30 AM–9 PM"
+      },
+      "phone": "(214) 544-8696",
+      "website": "https://www.toyotaofmckinney.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeeqppOqcKsjILKXutkejhk6eJsAY0zDEUfHoXLvEgkUm9ltRZE03ChehvigdnJzAoX5U36OsMZJ50yMi2gMZtmoS2gk0KKyCisQ7CR03DvuY2Sjsm8nkgkRSbaYyvP0htMaRg=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/kQOjC3icHcTdboIwFADgJ0KOEJ1b4gUiieMnTggJcIe1nkJpi57Cgg-4d9jbLNl38f3-CGtH-nDdQfgrNAYHPhF_MqMt13bFjHLx2RI5jNwgOEiVcv4Yx_ODJdR_pkk1Wcl7Ibc8pqCG1zEq7ydTpXOEslTvg82bCPxQcDF3eNPxKzDVpvS3Z8qaeANL1nmYNVaZwkMJSbKEHV3ewhz84zzVXtGT2mmJMi-ubb3MXyBs1ua4_14DgCP-Z47-A-3URjY"
+    },
+    {
+      "position": 6,
+      "title": "Toyota of Dallas",
+      "place_id": "ChIJKWidE5cnTIYRSpDjTlPeJUk",
+      "data_id": "0x864c2797139d6829:0x4925de534ee3904a",
+      "data_cid": "5270863388294221898",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c2797139d6829%3A0x4925de534ee3904a&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c2797139d6829%3A0x4925de534ee3904a&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9080553,
+        "longitude": -96.8891417
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJKWidE5cnTIYRSpDjTlPeJUk",
+      "provider_id": "/g/1tfk07md",
+      "rating": 4.3,
+      "reviews": 17201,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Car manufacturer",
+        "Motor vehicle dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "2610 Forest Ln, Dallas, TX 75234",
+      "country": "United States",
+      "open_state": "Open · Closes 8 PM",
+      "hours": "Open · Closes 8 PM",
+      "operating_hours": {
+        "saturday": "7 AM–8 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–9 PM",
+        "tuesday": "7 AM–9 PM",
+        "wednesday": "7 AM–9 PM",
+        "thursday": "7 AM–9 PM",
+        "friday": "7 AM–9 PM"
+      },
+      "phone": "(972) 584-9144",
+      "website": "https://www.toyotaofdallas.com/?utm_source=google&utm_medium=listing&utm_campaign=google-my-business",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeyUba-lTxyvZwY-4wiT25REDyTwDv8q5vY5G0Asj32lN67VfuUkPGhSAVjAnNmp3g4M4ECcu5Ukafwbvk2gybYfgBCHLbK7WISCE0PvUh-BdblOVBS8GcaYaCwlnsvRjeyYlkOSQ=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/P3Uu2XicHcTbTsMgAADQL2LFXrbFxAfaNZ1xbnO9GHwDpGChdI4W5BP9BP9miefh_P3Keb7axyjSMlmJaRKaL5bf2GRmbuYVm8ZI3Ii1gNkIoVyNBx5aSoBufoL78Bik_quJs0u5C43fue135nBWQWSHJNbH9abrl1adK1mjbkDmOF4Tkb6mZcGWrFWk99SpWASKe5EX-wN92bw_10UJz66VIP-k-tTl9bZiBJPCa2PdZeABa3Wq3578A4QQyP8ZMHcrukYM"
+    },
+    {
+      "position": 7,
+      "title": "Toyota of Rockwall",
+      "place_id": "ChIJTZ3LyIGqToYRtiIOJwgctxo",
+      "data_id": "0x864eaa81c8cb9d4d:0x1ab71c08270e22b6",
+      "data_cid": "1925038187064730294",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864eaa81c8cb9d4d%3A0x1ab71c08270e22b6&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864eaa81c8cb9d4d%3A0x1ab71c08270e22b6&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9109099,
+        "longitude": -96.44607289999999
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJTZ3LyIGqToYRtiIOJwgctxo",
+      "provider_id": "/g/1260l_2wd",
+      "rating": 4.6,
+      "reviews": 7434,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer"
+      ],
+      "address": "1250 E Interstate 30, Rockwall, TX 75087",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–9 PM",
+        "tuesday": "8:30 AM–9 PM",
+        "wednesday": "8:30 AM–9 PM",
+        "thursday": "8:30 AM–9 PM",
+        "friday": "8:30 AM–9 PM"
+      },
+      "phone": "(469) 434-3231",
+      "website": "https://www.toyotaofrockwall.com/?utm_source=google&utm_medium=organic&utm_campaign=GBP",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeWe3XoxGcRWK3IoSxZJvZYHMIxLxEpeUixRQcsQpHqgJtGQuaWcybHlkDItHni7fFY6Qr0lzUqHcN5KGuQN-CCUebF62oc1KW1hV_QlhNW6-8DEwLrLCgMcnS4jdyHa0i1bXK8=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/WL4yqnicHcRRboIwGADgE1XKmGiW-OBQKYIk1bCqLwv8di1aW6RF6y64M-w2S_Y9fL8_0rnOvgWBktFIGCMUHyzvwWjHtRuBuQair61FYIP5_P1yLTjj0d74FLYsjzKz88f1_Xggm8wXftnxqvVbCpZ25CbWLqVDzeDZEHVZZI7odvK1OsS0x-q7uhEox3k60BIlScWbVfxiIMxZKD8-qZIli9F0sXwUfZGIDejd6_n0JDVuw2afT2ePEGOM5P-A9B_v3kUm"
+    },
+    {
+      "position": 8,
+      "title": "Toyota of Richardson Service",
+      "place_id": "ChIJEwHAuD8fTIYRIKe1u0ZAo64",
+      "data_id": "0x864c1f3fb8c00113:0xaea34046bbb5a720",
+      "data_cid": "12583972456344430368",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c1f3fb8c00113%3A0xaea34046bbb5a720&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c1f3fb8c00113%3A0xaea34046bbb5a720&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9668051,
+        "longitude": -96.72635989999999
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJEwHAuD8fTIYRIKe1u0ZAo64",
+      "provider_id": "/g/11c2kjp7h1",
+      "rating": 4.4,
+      "reviews": 3173,
+      "type": "Car repair and maintenance service",
+      "types": [
+        "Car repair and maintenance service",
+        "Auto body parts supplier",
+        "Auto parts market",
+        "Car accessories store",
+        "Truck accessories store",
+        "Truck parts supplier",
+        "Used auto parts store"
+      ],
+      "address": "404 Monte Blaine Ln, Richardson, TX 75080",
+      "country": "United States",
+      "open_state": "Open · Closes 5 PM",
+      "hours": "Open · Closes 5 PM",
+      "operating_hours": {
+        "saturday": "6:30 AM–5 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(972) 607-9159",
+      "website": "https://www.toyotaofrichardson.com/service/index.htm?utm_source=google&utm_medium=listing&utm_campaign=google-my-business&utm_content=service",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc25kOGe3iLksPlBWdgAVe8wNnxHnpmNLM4OU1AxCtEesOgZf-Y6B5FQPhKGJC1ynsHxkX97IE_RFkeNidgkSEmAQlGZ3xvffd2sI6JiwyG3fS7Tcio2rFFk7DpVgb2_hk4-S6wDA=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/ocFqNHicHcRbcoIwFADQFUVeCtqZfgTkoUWQ0trqj6MhJEwgYbhpgSV2Cd2NM56P8__Hte7hxTBa7iyYUqylP0AHoqSmUi-I6gw23AAQAQNjX3QpsVcij6nTpAKOrf9VMXyi6zGTUyL7LksPy_zTwlOgQwo5u9To7PqrqDjyt3gfWLOEZBLfG28XXt8jQbOmYqIMO1y08cWZfuu6smHn7ptxjp269D5Io-whioS37U_sbl-5WKLSHbf4dbRM00T8OUHyAQH4RSY"
+    },
+    {
+      "position": 9,
+      "title": "Toyota of Denton",
+      "place_id": "ChIJuUXEtADKTYYR_JhT0XsKpBI",
+      "data_id": "0x864dca00b4c445b9:0x12a40a7bd15398fc",
+      "data_cid": "1343210115772422396",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864dca00b4c445b9%3A0x12a40a7bd15398fc&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864dca00b4c445b9%3A0x12a40a7bd15398fc&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.1664623,
+        "longitude": -97.08334839999999
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJuUXEtADKTYYR_JhT0XsKpBI",
+      "provider_id": "/g/1tf4ffmc",
+      "rating": 4.4,
+      "reviews": 3644,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "4100 South I-35 E Frontage Rd, Denton, TX 76210",
+      "country": "United States",
+      "open_state": "Open · Closes 8 PM",
+      "hours": "Open · Closes 8 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–8 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–8 PM",
+        "tuesday": "8:30 AM–8 PM",
+        "wednesday": "8:30 AM–8 PM",
+        "thursday": "8:30 AM–8 PM",
+        "friday": "8:30 AM–8 PM"
+      },
+      "phone": "(940) 293-4548",
+      "website": "https://www.toyotaofdenton.com/?utm_source=google&utm_medium=organic&utm_campaign=google-my-business",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdNJ03qGYJBc6isYx-Yyaa1UFhuDyo4IAW8WA54PSA6iMixMww9kkJzeeetpQKLOHEpk1IFRpOopswJHYDOJXNddLk4lIP5PlUxWQ_tFPDitmC-PfRn5FJ9Kpn10qt1s6udAbep8w=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/AMIajHicHcRRboIwAADQE1XaCESX-FGHKBWhagzjy2DpgBTaSkuK3nBH2G2W7H2835_WWm0-PK9vl4tGqabnk-EjU9JyaRdMDV4zVsYAZjyMt2JI64zA5XNfki0LO1POoHxVFbrF7RS9lJ_gYlXgwKdXHHanbj45txaCvDnnVp-PaX7YaYGS-KJzpY0jhzLKyVdW16nw-4QGtL_NxfluYxp1dvgE9Psig5isj1oi-LTIhFONH1yv3MYhCCFo_2dA_gH910WH"
+    },
+    {
+      "position": 10,
+      "title": "Lone Star Toyota of Lewisville",
+      "place_id": "ChIJd1u_WWAuTIYRueKF1lYNg1U",
+      "data_id": "0x864c2e6059bf5b77:0x55830d56d685e2b9",
+      "data_cid": "6161783381790417593",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c2e6059bf5b77%3A0x55830d56d685e2b9&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c2e6059bf5b77%3A0x55830d56d685e2b9&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.021378999999996,
+        "longitude": -96.987898
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJd1u_WWAuTIYRueKF1lYNg1U",
+      "provider_id": "/g/1td0bbdt",
+      "rating": 4.4,
+      "reviews": 6721,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Auto body parts supplier",
+        "Auto body shop",
+        "Auto parts store",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Oil change service",
+        "Truck dealer",
+        "Used car dealer"
+      ],
+      "address": "1547 S Stemmons Fwy, Lewisville, TX 75067",
+      "country": "United States",
+      "open_state": "Open · Closes 8 PM",
+      "hours": "Open · Closes 8 PM",
+      "operating_hours": {
+        "saturday": "9 AM–8 PM",
+        "sunday": "Closed",
+        "monday": "9 AM–8 PM",
+        "tuesday": "9 AM–8 PM",
+        "wednesday": "9 AM–8 PM",
+        "thursday": "9 AM–8 PM",
+        "friday": "9 AM–8 PM"
+      },
+      "phone": "(469) 671-5500",
+      "website": "https://www.lonestartoyotalewisville.com/?utm_source=google&utm_medium=organic&utm_campaign=googlemybusiness",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdUdJw09R8dVyKgv3JONMaoA_fmRr0OFKUQXIsXXLQFdXjVlQqgYniBkLOUfbKfkol5EK4PpfvqLPUWocEPar2hEZzd2wSB9LBmafofgH30OsL0BbqZ02X6q0AWFFXn_GQd9WjJ=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/YvXvmnicHcTdboIwGADQJ0I-YS6yZBc0AR3U8WOQ6g2BlhYFWqEMMl9wz-DbmOxcnOdfM013_WGaXWOvhFKiq390PVIlp1pOK6p6U4yl1gbVpuuitscsY8ECTrplp99QzHYQfR9K5Ra8T0eI_DBLyJcmBCc-I7dTlwziLK-oxVHGq5C3qtt44Vt85_OA4yxX1IvL0Wq8y4NZyxE5GPUlV1zsbYg0BlQNF7DI-wBu7vtEFruEOfkt-FzWAGA0_1NDvgClpkS-"
+    },
+    {
+      "position": 11,
+      "title": "Sport City Toyota",
+      "place_id": "ChIJZ7gngCynToYRRsVeGSX4QRc",
+      "data_id": "0x864ea72c8027b867:0x1741f825195ec546",
+      "data_cid": "1675893374581654854",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864ea72c8027b867%3A0x1741f825195ec546&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864ea72c8027b867%3A0x1741f825195ec546&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.8625098,
+        "longitude": -96.66242079999999
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJZ7gngCynToYRRsVeGSX4QRc",
+      "provider_id": "/g/1td0gy0b",
+      "rating": 4.5,
+      "reviews": 6333,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Motor vehicle dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "12650 Lyndon B Johnson Fwy, Dallas, TX 75228",
+      "country": "United States",
+      "open_state": "Open · Closes 8 PM",
+      "hours": "Open · Closes 8 PM",
+      "operating_hours": {
+        "saturday": "9 AM–8 PM",
+        "sunday": "Closed",
+        "monday": "9 AM–8 PM",
+        "tuesday": "9 AM–8 PM",
+        "wednesday": "9 AM–8 PM",
+        "thursday": "9 AM–8 PM",
+        "friday": "9 AM–8 PM"
+      },
+      "phone": "(877) 934-4725",
+      "website": "https://www.sportcitytoyota.com/?utm_source=google&utm_medium=organic&utm_campaign=google_my_business&utm_content=sales",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLchYoC7cVb2R2HzpzXi61kmcHgSvJ4CSSpVo0UDEE-dbidsRsOQLEHd-mZXs7VNxylP_dePNf4zw-BIz0u7DXgC_t1ocUtGL96rjbd952rCmNEfvQYQeIeeFKUfG5vE=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/OutjT3icHcRRDoIgAADQE5FoqautjzLSypnmdNZPS0C0RJyglZfrHN2mrffxvp9SqVYuNK0upxMmBKtpL2mHRaNooyZYcI11NykBltpqtX5wH5dn4dg4zY2T4Y3tmFWW_uDYY_Gwnzlx3KYCJhuEAMkrIk_yGPnII4BfMmmnwetdh1dCw6CYjU-w3o2wtzcZc65KFzhRrj-3untO5qbROTxAxRCdI7qjdHtICtcc0PKpQwhB-R-D5gdgcEIb"
+    },
+    {
+      "position": 12,
+      "title": "Toyota of Plano Service",
+      "place_id": "ChIJDelZm88jTIYRSjWelMCFcTE",
+      "data_id": "0x864c23cf9b59e90d:0x317185c0949e354a",
+      "data_cid": "3562775842400384330",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c23cf9b59e90d%3A0x317185c0949e354a&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c23cf9b59e90d%3A0x317185c0949e354a&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.081694,
+        "longitude": -96.8481968
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJDelZm88jTIYRSjWelMCFcTE",
+      "provider_id": "/g/11gpfzmwh2",
+      "rating": 4.2,
+      "reviews": 371,
+      "type": "Auto repair shop",
+      "types": [
+        "Auto repair shop",
+        "Auto parts store",
+        "Car repair and maintenance service",
+        "Vehicle inspection service"
+      ],
+      "address": "6888 State Hwy 121, Plano, TX 75024",
+      "country": "United States",
+      "open_state": "Open · Closes 5 PM",
+      "hours": "Open · Closes 5 PM",
+      "operating_hours": {
+        "saturday": "7 AM–5 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(469) 399-5990",
+      "website": "https://www.toyotaofplano.com/",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc-w_oAgeYuYbXP119FSVFfftLrIpWL2R0bltCXq-Oe5pNj3W4Q_ysOR48B3ya1-COT5rJnmcxkRE4y-GiSY8j0zf6qaIbiZpAHQYyGc2YyCANh586pbgglJOGDNEDRdNWmF6B_vA=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/dZIsc3icHcRLjoIwAADQE1WKfIImLgoKaggoToS6IVBLUYFWWsepN_QI3mYS3-J93q1SQs4No2utCeOcdfQh6Uj4oOigJoT3BhsrKQGRBkL-rY8JeJYcMYofuC52pjkLD8ewaVQ8bkQeTzNYdyoo7iCljkiuVm7vSy3TzPZ8S1cmCNIfZ9wOPfm7ZStbg-hywN4Vvhr3Xm3qy0mg9R7riEyxDlDSOp4rasa6bRotk9UyOyd5H7p--YsWTxNCCNrvBAz_ypxEbg"
+    },
+    {
+      "position": 13,
+      "title": "Toyota of Richardson Pre-Owned Department",
+      "place_id": "ChIJG_IZ1vAfTIYRC3QiIP-k6O0",
+      "data_id": "0x864c1ff0d619f21b:0xede8a4ff2022740b",
+      "data_cid": "17143133397248537611",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c1ff0d619f21b%3A0xede8a4ff2022740b&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c1ff0d619f21b%3A0xede8a4ff2022740b&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9647588,
+        "longitude": -96.7254007
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJG_IZ1vAfTIYRC3QiIP-k6O0",
+      "provider_id": "/g/11sy_knx05",
+      "rating": 2.6,
+      "reviews": 91,
+      "unclaimed_listing": true,
+      "type": "Used car dealer",
+      "types": [
+        "Used car dealer"
+      ],
+      "address": "1295 N Central Expy, Richardson, TX 75080",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–9 PM",
+        "tuesday": "8:30 AM–9 PM",
+        "wednesday": "8:30 AM–9 PM",
+        "thursday": "8:30 AM–9 PM",
+        "friday": "8:30 AM–9 PM"
+      },
+      "phone": "(877) 823-3972",
+      "website": "https://www.toyotaofrichardson.com/used-cars/index.htm",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcb6pJaK4nVZrIsCBVbH13RYRWk9dJDSMNGB1WwVmc-TIFuOfKJMehlWtIRdgNz63Uj8ESB1-oGeXjJ6yr16sTEc8N7NkRnNDfo3JBsQDAAaRCpZbK_VQZ3lbyBUk4WQPvg2p4=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/PDUEjXicHcRLjoIwAADQE1WoJfhJZkHFD0U7Q1VQNgZqLRFoCa1j9IDewduY-Bbv_aqs7czUcZoKDaTWshE3I3qulRXKDrhuHdkXxgBunCDAdbvmpd-RIvZUmveRmeG0XEHEjiyrJ2cSbjd0iWF2T1sOdtHi9nuJyUZUTWYjdpb06aP9dTzfYgj0UhyuxH_00De7OR_TEa2ZouFFI4JNEgZBwWZdXsanNMlRUz7wvvay5O9fDjvv5w5d1wXVdw7UB7xFQwU"
+    },
+    {
+      "position": 14,
+      "title": "Toyota of Irving",
+      "place_id": "ChIJWyXvl6yDToYR1Pj4Bp-WabY",
+      "data_id": "0x864e83ac97ef255b:0xb669969f06f8f8d4",
+      "data_cid": "13144202597218449620",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864e83ac97ef255b%3A0xb669969f06f8f8d4&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864e83ac97ef255b%3A0xb669969f06f8f8d4&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.838204,
+        "longitude": -96.970458
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJWyXvl6yDToYR1Pj4Bp-WabY",
+      "provider_id": "/g/1tjg_s9w",
+      "rating": 4.4,
+      "reviews": 6507,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Car dealer",
+        "Car finance and loan company",
+        "Car leasing service",
+        "Car manufacturer",
+        "Motor vehicle dealer",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "1999 W Airport Fwy, Irving, TX 75062",
+      "country": "United States",
+      "open_state": "Open · Closes 9 PM",
+      "hours": "Open · Closes 9 PM",
+      "operating_hours": {
+        "saturday": "8:30 AM–9 PM",
+        "sunday": "Closed",
+        "monday": "8:30 AM–9 PM",
+        "tuesday": "8:30 AM–9 PM",
+        "wednesday": "8:30 AM–9 PM",
+        "thursday": "8:30 AM–9 PM",
+        "friday": "8:30 AM–9 PM"
+      },
+      "phone": "(972) 258-1200",
+      "website": "https://www.toyotaofirving.com/?utm_source=google_my_business&utm_medium=organic&utm_campaign=product&utm_id=honestdigital",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "book_online": "https://www.carwise.com/auto-body-shops/book-appointment/toyota-of-irving-inc-irving-tx-75062/465571?rwg_token=AE37R_g2l55Z1s1KfaWIf2a2I2DwURzBKoMe5T__WQdsAgWYhghMhqMoIAnWY1L61eAbOcp5r-tvJ7_1PaYmXFpJSFG0HGnSuw%3D%3D",
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBFbk1dH-E65AAJaEuGlPOzUokqO1RUQ2exIDBBPWf9x09cJHNgdWJqhE5SOr2qIItBmcCoUbAcdbx4G0nEN6fWSNBMgMXxRu2v8BpXhID7YEmvl3wa8vlm8Mmm-3kPpgkh5y8=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/S1bqIXicHcRdboIwAADgE1UKiEOTPbSzU4j8TENwj1CgTdpSoAXZLrgz7DYmfg_f_x-3djAHx5Hc3zCtmWxn005U97bt7YZq5bCpMgZQ4yCEhbp0-LMWbnMGZBcgFFdkPsk8-y20GDP3Wnx57RodMc7Lbr_CPY3PKWvKeOQkuGWTN0aRxYp-6KJGtKnX7Qn2JN115S3FCUvu63X2lhAPdx4d376JWqT_qMJFqjBRCvgiH5jgwU_4_nAhhIC_pqB_Agb4RAA"
+    },
+    {
+      "position": 15,
+      "title": "Pat Lobb's Toyota of McKinney Service",
+      "place_id": "ChIJY9zwfgURTIYRNzauTxWuEMk",
+      "data_id": "0x864c11057ef0dc63:0xc910ae154fae3637",
+      "data_cid": "14488271407805249079",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c11057ef0dc63%3A0xc910ae154fae3637&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c11057ef0dc63%3A0xc910ae154fae3637&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.1677493,
+        "longitude": -96.6436815
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJY9zwfgURTIYRNzauTxWuEMk",
+      "provider_id": "/g/11fm19p7cl",
+      "rating": 4.7,
+      "reviews": 644,
+      "type": "Car repair and maintenance service",
+      "types": [
+        "Car repair and maintenance service",
+        "Auto air conditioning service",
+        "Auto electrical service",
+        "Auto tune up service",
+        "Brake shop",
+        "Mechanic",
+        "Oil change service",
+        "Truck repair shop",
+        "Wheel alignment service"
+      ],
+      "address": "3350 Central Expy, McKinney, TX 75070",
+      "country": "United States",
+      "open_state": "Closed · Opens 7 AM Mon",
+      "hours": "Closed · Opens 7 AM Mon",
+      "operating_hours": {
+        "saturday": "6 AM–3 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(214) 544-8696",
+      "website": "https://www.toyotaofmckinney.com/service-center-homepage.htm?utm_source=google&utm_medium=organic&utm_campaign=google_bussiness_profile",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdZAEmYSVW2CKQp66-JUZyWoizt8IqJ9oh-GhZ8Ojckn4b1lJ9ziwD-_hF4OpOEi_5shPU_6E3Z2hFKgxAV61YaTmvF-_wZmR2OJvHaWnSv0iMDU92WeQUeHyfaISsBxSYRafhB=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/PmauaXicHcTdboIwGADQJ6r86Ags2QVMEHALKkNCb0ithQ-lLdoO1BfcM-xtTDwX5_8PtB7Uu2H0MJ-1UrY9-1XsSqXQTOgZldxor0QpRJXh-8GZfx2xH_Iq35f253o7OA5KC3wvZffQbnJJPQloBdjNTvQsFgerT71HNy1RDdEiG7Kwq98UbIraCefYhmjd3vy9Y1Xkh48RqifMd3aWjjEpRT6a3fey8OySbQsW3xuS5Cq45dWONBB8TJZpmgheUySeONdEQw"
+    },
+    {
+      "position": 16,
+      "title": "Longo Toyota Service",
+      "place_id": "ChIJJU-Y4IU_TIYRr_0pl06FVac",
+      "data_id": "0x864c3f85e0984f25:0xa755854e9729fdaf",
+      "data_cid": "12057690149944425903",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c3f85e0984f25%3A0xa755854e9729fdaf&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c3f85e0984f25%3A0xa755854e9729fdaf&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.221005999999996,
+        "longitude": -96.8333413
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJJU-Y4IU_TIYRr_0pl06FVac",
+      "provider_id": "/g/11mfz_3dkt",
+      "rating": 4.3,
+      "reviews": 63,
+      "type": "Car repair and maintenance service",
+      "types": [
+        "Car repair and maintenance service"
+      ],
+      "address": "2100 W University Dr, Prosper, TX 75078",
+      "country": "United States",
+      "open_state": "Closes soon · 4 PM · Opens 7 AM Mon",
+      "hours": "Closes soon · 4 PM · Opens 7 AM Mon",
+      "operating_hours": {
+        "saturday": "7 AM–4 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(469) 659-7860",
+      "website": "https://www.longotoyotaofprosper.com/Service-center.html",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLehR0CMzkGhiQpXzmQdvNlvVxKsW5rAVKfjT37TumLgkWLikD2YIxkacutxMO-mPz1PYN98iP2t0joIt4kBd7mNRMSUYV8E-27yVjxt8cD_BcHOaHQrvNmm3Xw-ALYCmGERsAj6jt1bpq1D=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/D9IWF3icHcTBboIwGADgJ6oU2AYu2aGIUSMgoEM5LawipaWU0R9kvKRn32bJvsP3fDCATr8bRsPsRaVU1ZSDLnuqWihbWFAljaovtEZUG4R4QgYlS_EqnMWG1Ul3mWVyHaNmzKa9Pr_2JNvf-Ml2ToMMKnEOauFb-W4SBR1gCg9IxrMZ59HSrWMLMFc7eBHe1ZFRGh4_88xdI8v5zfgELvW_PLo9FNukHyMp7csdkSBfyc061YS_cTC_ux_T_7ibGGPE_qeo_QNHLUgt"
+    },
+    {
+      "position": 17,
+      "title": "Toyota Motor Sales USA Inc",
+      "place_id": "ChIJfznPvBssTIYRfQ3ToKDusDs",
+      "data_id": "0x864c2c1bbccf397f:0x3bb0eea0a0d30d7d",
+      "data_cid": "4301200017799187837",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c2c1bbccf397f%3A0x3bb0eea0a0d30d7d&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c2c1bbccf397f%3A0x3bb0eea0a0d30d7d&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 32.9898984,
+        "longitude": -96.9781726
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJfznPvBssTIYRfQ3ToKDusDs",
+      "provider_id": "/g/1w665tk5",
+      "rating": 3,
+      "reviews": 13,
+      "unclaimed_listing": true,
+      "type": "Corporate campus",
+      "types": [
+        "Corporate campus",
+        "Used car dealer"
+      ],
+      "address": "611 State Hwy 121, Coppell, TX 75019",
+      "country": "United States",
+      "open_state": "Open 24 hours",
+      "hours": "Open 24 hours",
+      "operating_hours": {
+        "saturday": "Open 24 hours",
+        "sunday": "Open 24 hours",
+        "monday": "Open 24 hours",
+        "tuesday": "Open 24 hours",
+        "wednesday": "Open 24 hours",
+        "thursday": "Open 24 hours",
+        "friday": "Open 24 hours"
+      },
+      "phone": "(214) 488-8920",
+      "website": "https://www.toyota.com/usa/",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdeml2FJ27LfvpXwfCJCep_Rj4SwSZkRZTAEz557mkZj1cuUyitwQRiza_9dcwVVUBmchQrwBN-YtAhjYiqEdm0sPbhhdAdZzJh_qRPx45XoX7fhdfXe8Y9iLf3pvoi2j832ks=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/yW9G53icHcRLDoIwFADAEyEIEtDERTG6IMQgfgJsiPbDK1CKtFrlgN7B25g4i_l-QOtBrWy7A29WS1l39KHoiGWvaa9nWAq7Hq9KWVjZCEWtSAgVnbuL3SBhzyE3bBNv6FBlzeJojmWblSe0nXw_EG3ZzPHj_ObaHDI-XaslweZyOUcCw2E00d4qNIKm4PctEY5KbwAEkXKKobpn6Wvh5zIPGBCW07BY8oR5w1Nytwk9t1VrM3ccx4L_2Op_4sxGcg"
+    },
+    {
+      "position": 18,
+      "title": "Pat Lobb's Toyota of McKinney Parts",
+      "place_id": "ChIJgZ_MG24RTIYRWTZho-NmA3Y",
+      "data_id": "0x864c116e1bcc9f81:0x760366e3a3613659",
+      "data_cid": "8503753649290294873",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c116e1bcc9f81%3A0x760366e3a3613659&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c116e1bcc9f81%3A0x760366e3a3613659&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.1676187,
+        "longitude": -96.6436535
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJgZ_MG24RTIYRWTZho-NmA3Y",
+      "provider_id": "/g/11hz1tnl23",
+      "rating": 4.5,
+      "reviews": 75,
+      "type": "Auto parts store",
+      "types": [
+        "Auto parts store",
+        "Auto body parts supplier",
+        "Car accessories store",
+        "Car battery store",
+        "Muffler shop",
+        "Tire shop",
+        "Transmission shop",
+        "Truck accessories store",
+        "Truck parts supplier",
+        "Used tire shop"
+      ],
+      "address": "3350 Central Expy, McKinney, TX 75070",
+      "country": "United States",
+      "open_state": "Closed · Opens 7 AM Mon",
+      "hours": "Closed · Opens 7 AM Mon",
+      "operating_hours": {
+        "saturday": "6 AM–3 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(469) 676-8029",
+      "website": "https://www.toyotaofmckinney.com/parts/center.htm?utm_source=google&utm_medium=organic&utm_campaign=google_bussiness_profile",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd9xfyGCgbj6aE0AwHrI0cWMGvN0WDUwaPG9K4RJVpvYNuK3v3hl4mHZLQLIMdpgG7SY_wztu6GREia2Li6ouO290NPYUSEe5xPJMsgru3MDtZlCiLo2DhtjB11QRAOgKys4iA=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/nrLx63icHcRdDoIgAADgE5n4k822Higdmmhmq2YvzcjAUnECWh2wO3Sbtr6H7_thUnZirus1syaUc1qXSpQ94a0sWzkhvNFpXwihEaFDuHw0-Oo-by-0ope7U_gAjkEfAnKM0ZCAo7cfixS5kZ2tD92QJyqyBovVdhOc8BaH8bWjaLbLz-NbKgdlflWYuHK42pguSNJ8v_PL6TNdx4L2yoo9eapXFeamx-R9aRjbDG5o9BJ2BRejAQDQ2H-itT8HOkPO"
+    },
+    {
+      "position": 19,
+      "title": "Passport Toyota",
+      "place_id": "ChIJk_yft_67t4kRAM6Md3OZE1g",
+      "data_id": "0x89b7bbfeb79ffc93:0x58139973778cce00",
+      "data_cid": "6346585021101166080",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x89b7bbfeb79ffc93%3A0x58139973778cce00&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x89b7bbfeb79ffc93%3A0x58139973778cce00&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 38.825904699999995,
+        "longitude": -76.9221712
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJk_yft_67t4kRAM6Md3OZE1g",
+      "provider_id": "/g/12qg8qdwn",
+      "rating": 4.6,
+      "reviews": 3059,
+      "type": "Toyota dealer",
+      "types": [
+        "Toyota dealer",
+        "Auto repair shop",
+        "Car dealer",
+        "Car leasing service",
+        "Truck dealer",
+        "Used car dealer",
+        "Used truck dealer"
+      ],
+      "address": "5001 Auth Way Ste d, Camp Springs, MD 20746",
+      "country": "United States",
+      "open_state": "Open · Closes 7 PM",
+      "hours": "Open · Closes 7 PM",
+      "operating_hours": {
+        "saturday": "9 AM–7 PM",
+        "sunday": "Closed",
+        "monday": "9 AM–7 PM",
+        "tuesday": "9 AM–7 PM",
+        "wednesday": "9 AM–7 PM",
+        "thursday": "9 AM–7 PM",
+        "friday": "9 AM–7 PM"
+      },
+      "phone": "(301) 899-6000",
+      "website": "https://www.passporttoyota.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp+sales",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom",
+            "Wheelchair accessible seating"
+          ]
+        }
+      ],
+      "unsupported_extensions": [
+        {
+          "accessibility": [
+            "Assistive hearing loop"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfDolm3IP7RJUp3gThvR5lo1B5r4szcykHX6io7SteNROn2GDGtx-QtFsseylvSTnVe1e9JNNxVq9u_KVue_NffmBticWFyauBjJV8jpXatuXUPePEEUzKLze7ZNIzsJ4Z6nc0=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/t4q19nicHcTdEoFAFADgJ0olhBkXGr8xK1EaN6bZORW23XTOoh7QO3gbM76L7_spiCocm6YonE6uVC5AI9RcSQJJHa5KM69TRIOjOZ1693KbzZQonXXghn5UOfmxeIZ9oWyvX_ew5c19lQyuyj0QsHAnu8vZkt7GnhaI0Ijn4ShjsGHkM_aOHyN92cQaLizLSo-u_LRoUu3d_Hh4q5KUdBIFEMznUbvZtuCe2bpFv3ceSG5NXrZlWUbxnxvyB7u3Rio"
+    },
+    {
+      "position": 20,
+      "title": "Lone Star Toyota of Lewisville Service and Parts Department",
+      "place_id": "ChIJe2il0oQvTIYRNtnaMBQaIiE",
+      "data_id": "0x864c2f84d2a5687b:0x21221a1430dad936",
+      "data_cid": "2387499426481101110",
+      "reviews_link": "https://serpapi.com/search.json?data_id=0x864c2f84d2a5687b%3A0x21221a1430dad936&engine=google_maps_reviews&hl=en",
+      "photos_link": "https://serpapi.com/search.json?data_id=0x864c2f84d2a5687b%3A0x21221a1430dad936&engine=google_maps_photos&hl=en",
+      "gps_coordinates": {
+        "latitude": 33.021501199999996,
+        "longitude": -96.9871311
+      },
+      "place_id_search": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&place_id=ChIJe2il0oQvTIYRNtnaMBQaIiE",
+      "provider_id": "/g/11rxmf2g5l",
+      "rating": 4.9,
+      "reviews": 677,
+      "type": "Auto repair shop",
+      "types": [
+        "Auto repair shop"
+      ],
+      "address": "1547 S Stemmons Fwy Suite 1, Lewisville, TX 75067",
+      "country": "United States",
+      "open_state": "Open · Closes 5 PM",
+      "hours": "Open · Closes 5 PM",
+      "operating_hours": {
+        "saturday": "7 AM–5 PM",
+        "sunday": "Closed",
+        "monday": "7 AM–7 PM",
+        "tuesday": "7 AM–7 PM",
+        "wednesday": "7 AM–7 PM",
+        "thursday": "7 AM–7 PM",
+        "friday": "7 AM–7 PM"
+      },
+      "phone": "(469) 671-0701",
+      "website": "https://www.lonestartoyotalewisville.com/schedule-service.html",
+      "extensions": [
+        {
+          "accessibility": [
+            "Wheelchair accessible entrance",
+            "Wheelchair accessible parking lot",
+            "Wheelchair accessible restroom"
+          ]
+        }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcpXLOEqPDxnN5KUiuf0sRnWQo2Y3LeRXCFr4sDNzaSb4U2ruuwWEKQuSTRYga1lZ7WBMwH-qS9uQV3BtjENeeKyf2xCP57fsjLhNBR-r5WiTN1QaJDs6bL3RYgClO96d5iMyJK=w1000-h1000-c-n",
+      "serpapi_thumbnail": "https://serpapi.com/images/url/PczRv3icHctLEsEwGADgE0VfyjBjoQ9jNEIfFLuK9EEl5E-muKAzuA1j8-2-z7tW6gZjw2hrp1cJUbVMA5NUcMW46lFxNSpZACAKxnTqXa6Y3nZ4Fd7XwYMTN9o0ujQh4Xks7L2DWbLzZ7IPAXkV6bG_saXWXR5GsU6zZF8VVnsY5t6ym6N7OtLx1vHUOSSMRc_Sfvhrd1jCGdfES5B08yYjVlwsAhgcsfPbfrsaDU5us3wuoklnmaaJ6r8U8S-BzkQv"
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?engine=google_maps&google_domain=google.com&hl=en&ll=%4033.0762%2C-96.8239%2C12z&q=Toyota+dealer&start=20&type=search"
+  }
+}

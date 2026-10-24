@@ -14,6 +14,7 @@ from typing import Protocol
 
 from psycopg_pool import ConnectionPool
 
+from ..adapters.dealers import Dealer
 from ..adapters.listings import ListingQuote
 from ..db import repo
 from ..engine.schemas import Contract
@@ -62,6 +63,8 @@ class CustomerStore(Protocol):
     def get_record(self, customer_id: str) -> CustomerRecord | None: ...
     def monthly_miles(self, customer_id: str) -> list[tuple[date, int]]: ...
     def monthly_spend(self, customer_id: str) -> list[tuple[date, str, Decimal]]: ...
+    def dealer_candidates(self, zip_code: str) -> list[Dealer] | None: ...
+    def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None: ...
 
 
 _RECORD_SQL = """
@@ -134,3 +137,11 @@ class DbStore:
     def monthly_spend(self, customer_id: str) -> list[tuple[date, str, Decimal]]:
         with self._pool.connection() as conn:
             return repo.monthly_spend(conn, customer_id)
+
+    def dealer_candidates(self, zip_code: str) -> list[Dealer] | None:
+        with self._pool.connection() as conn:
+            return repo.dealer_candidates(conn, zip_code)
+
+    def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None:
+        with self._pool.connection() as conn:
+            repo.save_dealer_candidates(conn, zip_code, dealers)

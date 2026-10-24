@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
@@ -63,17 +63,23 @@ const result = (over: Partial<PathsResult> = {}): PathsResult => ({
       text: "If your monthly budget changed from $2,250 to $410, Keep as is would become the recommendation.",
     },
   ],
-  ranges: {},
+  ranges: {
+    miles_per_year: { min: "5000", max: "25000", step: "100" },
+    monthly_budget: { min: "200", max: "2250", step: "10" },
+    years_to_keep: { min: "1", max: "8", step: "1" },
+    financing_rate: { min: "3", max: "12", step: "0.25" },
+  },
+  assumptions: ["A car you give up before the five years are up is replaced by a lease at $450 a month with $3,000 due at signing (illustrative)."],
   ...over,
 });
 
 type Reply = { status?: number; body: unknown } | Error | "never";
 
-function stubFetch(handler: (url: string) => Reply) {
+function stubFetch(handler: (url: string, init?: RequestInit) => Reply) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) => {
-      const reply = handler(url);
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const reply = handler(url, init);
       if (reply === "never") return new Promise(() => {});
       if (reply instanceof Error) throw reply;
       const status = reply.status ?? 200;
@@ -266,7 +272,7 @@ describe("Your paths explanation", () => {
     stubFetch(serve(result(), { status: 500, body: { detail: "boom" } }));
     renderPaths();
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Buy out: saves about $5,389 over 5 years");
-    await vi.waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([u]) => String(u).endsWith("/explanation"))).toBe(true));
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([u]) => String(u).endsWith("/explanation"))).toBe(true));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByText("Numbers verified")).toBeInTheDocument();
   });
@@ -275,7 +281,7 @@ describe("Your paths explanation", () => {
     stubFetch(serve(result(), { body: { ...model, verified: false } }));
     renderPaths();
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Buy out: saves about $5,389 over 5 years");
-    await vi.waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([u]) => String(u).endsWith("/explanation"))).toBe(true));
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([u]) => String(u).endsWith("/explanation"))).toBe(true));
     expect(screen.queryByText("Buy out comes out ahead")).not.toBeInTheDocument();
   });
 
@@ -283,5 +289,128 @@ describe("Your paths explanation", () => {
     stubFetch(serve(result(), { body: template }));
     renderPaths();
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Buy out: saves about $5,389 over 5 years");
+  });
+});
+
+// --- sliders, reset, and the assumptions (T056, T057, T059) ---
+
+const bodyOf = (init?: RequestInit) => JSON.parse(String(init?.body ?? "{}"));
+const pathsCalls = () =>
+  vi.mocked(fetch).mock.calls.filter(([u]) => String(u).endsWith("/paths")).map(([, init]) => bodyOf(init));
+
+const moved = (miles: number): PathsResult =>
+  result({
+    inputs_used: { miles_per_year: miles, monthly_budget: "2250", years_to_keep: 2, financing_rate: "6.5" },
+    recommendation: { ...result().recommendation, explanation: { ...template, headline: "Keep as is: stays your best move" } },
+  });
+
+describe("Your paths sliders", () => {
+  it("starts the four inputs at the customer's own defaults, with the server's ranges", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    const miles = (await screen.findByLabelText("Miles per year")) as HTMLInputElement;
+    expect([miles.value, miles.min, miles.max, miles.step]).toEqual(["14600", "5000", "25000", "100"]);
+    const budget = screen.getByLabelText("Monthly budget") as HTMLInputElement;
+    expect([budget.value, budget.min, budget.max, budget.step]).toEqual(["2250", "200", "2250", "10"]);
+    expect((screen.getByLabelText("Years you plan to keep a car") as HTMLInputElement).value).toBe("2");
+    const rate = screen.getByLabelText("Financing rate") as HTMLInputElement;
+    expect([rate.value, rate.min, rate.max, rate.step]).toEqual(["6.5", "3", "12", "0.25"]);
+  });
+
+  it("shows each value in words a customer reads, with the range ends under the slider", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    await screen.findByLabelText("Miles per year");
+    const panel = within(screen.getByRole("region", { name: "Adjust your situation" }));
+    expect(panel.getByText("14,600")).toBeInTheDocument();
+    expect(panel.getByText("6.5%")).toBeInTheDocument();
+    expect(panel.getAllByText("$2,250").length).toBeGreaterThan(0);
+    expect(panel.getByText("25,000")).toBeInTheDocument();
+  });
+
+  it("calls the rate a refinance rate for a loan customer", async () => {
+    stubFetch(serve(result({ contract_type: "loan" })));
+    renderPaths();
+    expect(await screen.findByLabelText("Refinance rate")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Financing rate")).not.toBeInTheDocument();
+  });
+
+  it("sends all four inputs after a short pause and swaps in the new results", async () => {
+    stubFetch((url, init) => {
+      if (url.endsWith("/paths") && bodyOf(init).miles_per_year === 20000) return { body: moved(20000) };
+      return serve(result())(url);
+    });
+    renderPaths();
+    const miles = await screen.findByLabelText("Miles per year");
+    fireEvent.change(miles, { target: { value: "20000" } });
+    expect((miles as HTMLInputElement).value).toBe("20000"); // the slider answers at once
+    expect(await screen.findByText("Keep as is: stays your best move")).toBeInTheDocument();
+    expect(pathsCalls().at(-1)).toEqual({ miles_per_year: 20000, monthly_budget: 2250, years_to_keep: 2, financing_rate: 6.5 });
+  });
+
+  it("does not send a request for every step of a drag", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    const miles = await screen.findByLabelText("Miles per year");
+    const before = pathsCalls().length;
+    for (const v of ["15000", "16000", "17000", "18000"]) fireEvent.change(miles, { target: { value: v } });
+    await waitFor(() => expect(pathsCalls().length).toBe(before + 1));
+    expect(pathsCalls().at(-1)?.miles_per_year).toBe(18000);
+    await waitFor(() => expect(screen.queryByText("Updating…")).not.toBeInTheDocument()); // let it settle
+  });
+
+  it("returns to the customer's own data when reset", async () => {
+    stubFetch((url, init) => {
+      if (url.endsWith("/paths") && bodyOf(init).miles_per_year === 20000) return { body: moved(20000) };
+      return serve(result())(url);
+    });
+    renderPaths();
+    fireEvent.change(await screen.findByLabelText("Miles per year"), { target: { value: "20000" } });
+    await screen.findByText("Keep as is: stays your best move");
+    fireEvent.click(screen.getByRole("button", { name: "Reset to my data" }));
+    expect(await screen.findByText("Buy out: saves about $5,389 over 5 years")).toBeInTheDocument();
+    expect(pathsCalls().at(-1)).toEqual({});
+    expect((screen.getByLabelText("Miles per year") as HTMLInputElement).value).toBe("14600");
+  });
+
+  it("keeps the previous results and says why when the server rejects an input", async () => {
+    stubFetch((url, init) => {
+      if (url.endsWith("/paths") && bodyOf(init).miles_per_year === 20000) {
+        return { status: 422, body: { detail: "Miles per year: Input should be a multiple of 100" } };
+      }
+      return serve(result())(url);
+    });
+    renderPaths();
+    fireEvent.change(await screen.findByLabelText("Miles per year"), { target: { value: "20000" } });
+    expect(await screen.findByRole("alert")).toHaveTextContent("Miles per year: Input should be a multiple of 100");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Buy out: saves about $5,389 over 5 years");
+    expect(screen.getAllByRole("article").length).toBe(4);
+  });
+
+  it("starts again from the next customer's own defaults", async () => {
+    const two = [...customers, { id: "cust_07", display_name: "Sam Lee", vehicle_label: "Camry loan" }];
+    stubFetch((url, init) => {
+      if (url === "/api/customers") return { body: two };
+      if (url.endsWith("/cust_07/paths")) return { body: moved(11000) };
+      if (url.endsWith("/cust_01/paths") && bodyOf(init).miles_per_year === 20000) return { body: moved(20000) };
+      return serve(result())(url);
+    });
+    renderPaths();
+    fireEvent.change(await screen.findByLabelText("Miles per year"), { target: { value: "20000" } });
+    await screen.findByText("Keep as is: stays your best move");
+    fireEvent.change(screen.getByLabelText("Demo customer"), { target: { value: "cust_07" } });
+    await waitFor(() => expect((screen.getByLabelText("Miles per year") as HTMLInputElement).value).toBe("11000"));
+    const forSam = vi.mocked(fetch).mock.calls.filter(([u]) => String(u).endsWith("/cust_07/paths"));
+    expect(forSam.map(([, init]) => bodyOf(init))).toEqual([{}]); // defaults, not the first customer's 20,000
+    await waitFor(() => expect(screen.queryByText("Updating…")).not.toBeInTheDocument()); // let it settle
+  });
+});
+
+describe("Your paths assumptions", () => {
+  it("shows the illustrative values behind the numbers", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    const section = await screen.findByRole("region", { name: "Assumptions behind these numbers" });
+    expect(within(section).getByText(/\$450 a month with \$3,000 due at signing \(illustrative\)/)).toBeInTheDocument();
   });
 });

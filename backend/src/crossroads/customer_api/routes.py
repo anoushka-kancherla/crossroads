@@ -5,19 +5,27 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from ..adapters.dealers import DealersClient
 from ..config import Config
+from ..engine.schemas import LEASE_PATHS, LOAN_PATHS, PATH_LABELS
 from ..explain.service import ExplainService
+from .dealers_service import nearby_dealers
 from .overview import build_overview, build_spending
 from .paths_service import (
     InvalidInput,
     apply_request,
     build_explanation,
     build_paths_response,
+    confirmation_text,
     default_inputs,
 )
 from .schemas import (
     CustomerListItem,
+    DealerOut,
+    DealersResponse,
     ExplanationOut,
+    NextStepRequest,
+    NextStepResponse,
     OverviewResponse,
     PathsRequest,
     PathsResponse,
@@ -38,6 +46,10 @@ def get_cfg(request: Request) -> Config:
 
 def get_explain(request: Request) -> ExplainService:
     return request.app.state.explain
+
+
+def get_dealers(request: Request) -> DealersClient | None:
+    return request.app.state.dealers
 
 
 def _record(store: CustomerStore, customer_id: str) -> CustomerRecord:
@@ -84,6 +96,33 @@ def paths(
     leave inputs out) to get the customer's own defaults, which come back in `inputs_used`."""
     base, inp = _scenario_for(_record(store, customer_id), body, cfg)
     return build_paths_response(inp, base.scenario.monthly_budget, cfg, explain)
+
+
+@router.get("/customers/{customer_id}/dealers", response_model=DealersResponse)
+def dealers(
+    customer_id: str,
+    store: CustomerStore = Depends(get_store),
+    client: DealersClient | None = Depends(get_dealers),
+):
+    """The three Toyota dealers nearest this customer, nearest first. An empty list is a valid answer."""
+    found = nearby_dealers(store, client, _record(store, customer_id))
+    return DealersResponse(
+        dealers=[
+            DealerOut(name=d.name, address=d.address, hours=d.hours, rating=d.rating, distance_miles=d.distance_miles)
+            for d in found
+        ]
+    )
+
+
+@router.post("/customers/{customer_id}/next-step", response_model=NextStepResponse)
+def next_step(customer_id: str, body: NextStepRequest, store: CustomerStore = Depends(get_store)):
+    """Confirm the customer's chosen next step, or a request to talk to a specialist. Stateless: it
+    starts no transaction and stores nothing."""
+    rec = _record(store, customer_id)
+    allowed = LEASE_PATHS if rec.contract.type == "lease" else LOAN_PATHS
+    if body.path not in allowed:
+        raise HTTPException(status_code=422, detail="That is not one of your options.")
+    return NextStepResponse(path_label=PATH_LABELS[body.path], confirmation=confirmation_text(body.path, body.kind))
 
 
 @router.post("/customers/{customer_id}/explanation", response_model=ExplanationOut)

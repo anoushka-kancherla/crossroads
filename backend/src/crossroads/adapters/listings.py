@@ -61,13 +61,18 @@ class SerpApiListings:
         self._http = http or httpx.Client(timeout=15)
 
     def lookup(self, make: str, model: str, year: int, zip_code: str) -> ListingQuote | None:
-        r = self._http.get(
-            SERPAPI_URL,
-            params={"engine": "google", "q": f"{year} {make} {model} for sale near {zip_code}",
-                    "api_key": self._key},
-        )
-        r.raise_for_status()
-        return quote_from_prices(prices_from_results(r.json()))
+        try:
+            r = self._http.get(
+                SERPAPI_URL,
+                params={"engine": "google", "q": f"{year} {make} {model} for sale near {zip_code}",
+                        "api_key": self._key},
+            )
+            r.raise_for_status()
+            payload = r.json()
+        except (httpx.HTTPError, ValueError):
+            # Not chained: an httpx error message includes the request URL, and so the API key.
+            raise RuntimeError("The listings search could not be reached.") from None
+        return quote_from_prices(prices_from_results(payload))
 
 
 class FakeListings:

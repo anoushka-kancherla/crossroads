@@ -177,3 +177,26 @@ class PathsResponse(BaseModel):
     recommendation: RecommendationOut
     flips: list[FlipOut]
     ranges: dict[InputName, RangeOut]
+    assumptions: list[str]  # the illustrative values behind the numbers, in plain words (FR-031, FR-034)
+
+
+class DealerOut(BaseModel):
+    name: str
+    address: str
+    hours: str | None
+    rating: float | None
+    distance_miles: float
+
+
+class DealersResponse(BaseModel):
+    dealers: list[DealerOut]
+
+
+class NextStepRequest(BaseModel):
+    path: PathName
+    kind: Literal["primary", "specialist"]
+
+
+class NextStepResponse(BaseModel):
+    path_label: str
+    confirmation: str

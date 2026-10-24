@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from ..adapters.dealers import DealerLookupError, DealersClient, SerpApiDealers
 from ..adapters.llm import LLMClient, make_llm
 from ..config import Config, load_settings
 from ..db.repo import make_pool
@@ -30,10 +31,13 @@ _FIELD_LABELS = {
 
 
 def create_app(
-    store: CustomerStore | None = None, cfg: Config | None = None, llm: LLMClient | None = None
+    store: CustomerStore | None = None,
+    cfg: Config | None = None,
+    llm: LLMClient | None = None,
+    dealers: DealersClient | None = None,
 ) -> FastAPI:
-    """The app. Without a `store` it reads the database named by DATABASE_URL and takes the model
-    from the environment (none without a key); tests pass a store, and a fake model if they want one."""
+    """The app. Without a `store` it reads the database named by DATABASE_URL and takes the model and
+    the dealer search from the environment (none without a key); tests pass a store, and fakes."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -55,10 +59,19 @@ def create_app(
     app.state.cfg = cfg or Config()
     if store is not None:
         app.state.store = store
-    if llm is None and store is None:
-        llm = make_llm(load_settings())
+    if store is None:
+        settings = load_settings()
+        llm = llm or make_llm(settings)
+        if dealers is None and settings.serpapi_api_key:
+            dealers = SerpApiDealers(settings.serpapi_api_key)
     app.state.explain = ExplainService(llm)
+    app.state.dealers = dealers
     app.include_router(router)
+
+    @app.exception_handler(DealerLookupError)
+    async def dealers_unavailable(request: Request, exc: DealerLookupError) -> JSONResponse:
+        # The confirmation never depends on this: the screen shows the next step either way.
+        return JSONResponse(status_code=503, content={"detail": "Nearby dealers couldn't be loaded right now."})
 
     @app.exception_handler(RequestValidationError)
     async def invalid_input(request: Request, exc: RequestValidationError) -> JSONResponse:

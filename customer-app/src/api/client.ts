@@ -8,6 +8,10 @@ export type PathsResult = components["schemas"]["PathsResponse"];
 export type PathOption = components["schemas"]["OptionOut"];
 export type PathsInputs = components["schemas"]["PathsRequest"];
 export type Explanation = components["schemas"]["ExplanationOut"];
+export type Dealer = components["schemas"]["DealerOut"];
+export type Dealers = components["schemas"]["DealersResponse"];
+export type NextStepRequest = components["schemas"]["NextStepRequest"];
+export type NextStepResult = components["schemas"]["NextStepResponse"];
 
 const NETWORK_ERROR = "We couldn't reach the server. Please check your connection and try again.";
 const GENERIC_ERROR = "Something went wrong. Please try again.";
@@ -46,4 +50,6 @@ export const api = {
   /** Leave `inputs` out for the customer's own defaults, which come back in `inputs_used`. */
   paths: (id: string, inputs: PathsInputs = {}) => postJson<PathsResult>(`${customer(id)}/paths`, inputs),
   explanation: (id: string, inputs: PathsInputs = {}) => postJson<Explanation>(`${customer(id)}/explanation`, inputs),
+  dealers: (id: string) => getJson<Dealers>(`${customer(id)}/dealers`),
+  nextStep: (id: string, body: NextStepRequest) => postJson<NextStepResult>(`${customer(id)}/next-step`, body),
 };

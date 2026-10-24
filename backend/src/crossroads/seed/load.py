@@ -13,8 +13,10 @@ from datetime import UTC, date, datetime, time
 
 import psycopg
 
+from ..adapters.dealers import DealerLookupError, DealersClient, SerpApiDealers
 from ..adapters.nessie import FakeNessie, HttpNessie, NessieClient
 from ..config import load_settings
+from ..db import repo
 from ..db.repo import apply_schema, connect, refresh_aggregates
 from .profiles import Profile, generate_profiles, synthetic_quote
 
@@ -161,11 +163,38 @@ def read_back(conn: psycopg.Connection, nessie: NessieClient, p: Profile, nessie
             )
 
 
-def seed(conn: psycopg.Connection, nessie: NessieClient, profiles: list[Profile]) -> None:
+def warm_dealer_cache(conn: psycopg.Connection, dealers: DealersClient, profiles: list[Profile]) -> list[str]:
+    """Look up the dealers for every demo ZIP once, so the next-step screen never waits on a live
+    search. A ZIP that is already cached is skipped, so re-running costs nothing. Returns the ZIPs that
+    failed, by ZIP only: an error message must never carry the request URL, which has the key in it."""
+    failed: list[str] = []
+    seen: set[str] = set()
+    for p in profiles:
+        if p.zip in seen:
+            continue
+        seen.add(p.zip)
+        if repo.dealer_candidates(conn, p.zip) is not None:
+            continue
+        try:
+            found = dealers.search(p.zip, p.lat, p.lng)
+        except DealerLookupError:
+            failed.append(p.zip)
+            continue
+        repo.save_dealer_candidates(conn, p.zip, found)
+    return failed
+
+
+def seed(
+    conn: psycopg.Connection,
+    nessie: NessieClient,
+    profiles: list[Profile],
+    dealers: DealersClient | None = None,
+) -> list[str]:
     for p in profiles:
         upsert_profile(conn, p)
         nessie_cid = ensure_in_nessie(conn, nessie, p)
         read_back(conn, nessie, p, nessie_cid)
+    return warm_dealer_cache(conn, dealers, profiles) if dealers is not None else []
 
 
 def main() -> None:
@@ -174,10 +203,17 @@ def main() -> None:
     apply_schema(conn)
     nessie: NessieClient = HttpNessie(settings.nessie_api_key) if settings.nessie_api_key else FakeNessie()
     profiles = generate_profiles()
-    seed(conn, nessie, profiles)
+    dealers = SerpApiDealers(settings.serpapi_api_key) if settings.serpapi_api_key else None
+    failed = seed(conn, nessie, profiles, dealers)
     refresh_aggregates(conn)
     source = "Nessie" if settings.nessie_api_key else "the in-memory Nessie fake"
     print(f"Seeded {len(profiles)} customers using {source}.")
+    if dealers is None:
+        print("No SERPAPI_API_KEY: nearby dealers will show their unavailable state until one is set.")
+    else:
+        zips = len({p.zip for p in profiles})
+        note = f" Failed: {', '.join(failed)}." if failed else ""
+        print(f"Dealer cache ready for {zips - len(failed)} of {zips} ZIPs.{note}")
 
 
 if __name__ == "__main__":
