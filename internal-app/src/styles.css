@@ -1,0 +1,39 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+body { margin: 0; }
+main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.75rem 1.5rem; border-bottom: 1px solid #bbb;
+}
+.topbar .who { display: flex; align-items: center; gap: 0.75rem; }
+.brand-sub { font-size: 0.85rem; color: #555; }
+h1 { margin: 0; font-size: 1.6rem; }
+.subtitle { margin: 0.25rem 0 1rem; color: #555; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+.tile { border: 1px solid #999; padding: 0.75rem; }
+.tile-label { font-size: 0.85rem; color: #555; }
+.tile-value { font-size: 1.6rem; font-weight: 700; }
+.tile-sub { font-size: 0.8rem; color: #555; }
+.columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 800px) { .columns { grid-template-columns: 1fr; } }
+.panel { border: 1px solid #999; padding: 1rem; min-width: 0; }
+.panel h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.chart { min-height: 280px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid #ddd; }
+th { background: #eee; }
+td.num, th.num { text-align: right; }
+.assumptions { margin: 0.5rem 0 0; padding-left: 1.2rem; font-size: 0.85rem; color: #555; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 1rem; }
+button.primary, button.secondary { font: inherit; padding: 0.6rem 1.1rem; border: 2px solid #111; cursor: pointer; }
+button.primary { background: #eee; font-weight: 600; }
+button.secondary { background: #fff; }
+button:disabled { opacity: 0.6; cursor: default; }
+.login { max-width: 22rem; margin: 3rem auto; display: grid; gap: 0.9rem; }
+.login label { display: grid; gap: 0.25rem; font-weight: 600; }
+.login input { font: inherit; padding: 0.5rem; border: 1px solid #777; }
+[role="alert"] { border: 1px solid #b00020; color: #b00020; padding: 0.5rem 0.75rem; }

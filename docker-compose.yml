@@ -45,6 +45,7 @@ services:
       STAFF_USER: ${STAFF_USER:-}
       STAFF_PASSWORD_HASH: ${STAFF_PASSWORD_HASH:-}
       SESSION_SECRET: ${SESSION_SECRET:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     networks: [internal-net]
     depends_on:
       db:

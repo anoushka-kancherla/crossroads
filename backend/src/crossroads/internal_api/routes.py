@@ -1,0 +1,68 @@
+"""Internal routes. Sign-in is the only one open; every other route needs a valid staff session, checked
+here in the API (FR-025)."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+
+from ..config import Config
+from ..customer_api.store import CustomerStore
+from ..explain.service import ExplainService
+from .auth import COOKIE, COOKIE_PATH, SESSION_SECONDS, AuthState, check_credentials, make_token, require_staff
+from .portfolio_service import build_portfolio, refresh_snapshots
+from .schemas import LoginRequest, PortfolioResponse, SessionOut
+from .snapshots import SnapshotStore
+
+router = APIRouter(prefix="/api/internal")
+
+
+@router.post("/login", status_code=204)
+def login(body: LoginRequest, request: Request, response: Response):
+    auth: AuthState = request.app.state.auth
+    if not auth.configured:
+        raise HTTPException(status_code=503, detail="Staff sign-in is not configured.")
+    # One message for a wrong username and a wrong password, so neither can be told apart.
+    if not check_credentials(auth.user, auth.password_hash, body.username, body.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    response.set_cookie(
+        COOKIE,
+        make_token(auth.user, auth.secret, auth.clock()),
+        max_age=SESSION_SECONDS,
+        httponly=True,
+        samesite="strict",
+        secure=auth.secure,
+        path=COOKIE_PATH,
+    )
+
+
+@router.post("/logout", status_code=204)
+def logout(request: Request, response: Response, staff: dict = Depends(require_staff)):
+    request.app.state.auth.revoke(staff["jti"], int(staff["exp"]))
+    response.delete_cookie(COOKIE, path=COOKIE_PATH, httponly=True, samesite="strict")
+
+
+@router.get("/session", response_model=SessionOut)
+def session(staff: dict = Depends(require_staff)):
+    return SessionOut(user=staff["sub"])
+
+
+@router.get("/portfolio", response_model=PortfolioResponse)
+def portfolio(request: Request, _: dict = Depends(require_staff)):
+    snapshots: SnapshotStore = request.app.state.snapshots
+    return build_portfolio(snapshots.load())
+
+
+@router.post("/portfolio/refresh", response_model=PortfolioResponse)
+def refresh(request: Request, _: dict = Depends(require_staff)):
+    """Recompute every customer's recommendation (and its explanation check) and return the new portfolio."""
+    state = request.app.state
+    store: CustomerStore = state.store
+    cfg: Config = state.cfg
+    explain: ExplainService = state.explain
+    return build_portfolio(refresh_snapshots(store, state.snapshots, cfg, explain))
+
+
+@router.get("/openapi.json", include_in_schema=False)
+def openapi(request: Request, _: dict = Depends(require_staff)):
+    """The API description is behind the same sign-in as the data."""
+    return request.app.openapi()

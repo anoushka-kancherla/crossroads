@@ -197,6 +197,24 @@ def seed(
     return warm_dealer_cache(conn, dealers, profiles) if dealers is not None else []
 
 
+def refresh_portfolio(database_url: str) -> None:
+    """Store every customer's recommendation so the staff dashboard has figures straight away. The
+    explanations here are the checked template, so seeding never needs a model key."""
+    from ..config import Config
+    from ..customer_api.store import DbStore
+    from ..db.repo import make_pool
+    from ..explain.service import ExplainService
+    from ..internal_api.portfolio_service import refresh_snapshots
+    from ..internal_api.snapshots import DbSnapshots
+
+    pool = make_pool(database_url)
+    pool.open()
+    try:
+        refresh_snapshots(DbStore(pool), DbSnapshots(pool), Config(), ExplainService(None))
+    finally:
+        pool.close()
+
+
 def main() -> None:
     settings = load_settings()
     conn = connect(settings.database_url, autocommit=True)
@@ -206,6 +224,7 @@ def main() -> None:
     dealers = SerpApiDealers(settings.serpapi_api_key) if settings.serpapi_api_key else None
     failed = seed(conn, nessie, profiles, dealers)
     refresh_aggregates(conn)
+    refresh_portfolio(settings.database_url)
     source = "Nessie" if settings.nessie_api_key else "the in-memory Nessie fake"
     print(f"Seeded {len(profiles)} customers using {source}.")
     if dealers is None:

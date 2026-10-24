@@ -51,6 +51,7 @@ class Settings:
     staff_user: str
     staff_password_hash: str
     session_secret: str
+    cookie_secure: bool = False  # set COOKIE_SECURE=true when the site is served over HTTPS
 
 
 def load_settings() -> Settings:
@@ -64,4 +65,5 @@ def load_settings() -> Settings:
         staff_user=env("STAFF_USER", ""),
         staff_password_hash=env("STAFF_PASSWORD_HASH", ""),
         session_secret=env("SESSION_SECRET", ""),
+        cookie_secure=env("COOKIE_SECURE", "").lower() == "true",
     )
