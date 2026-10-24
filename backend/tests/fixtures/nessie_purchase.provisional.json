@@ -1,0 +1,11 @@
+{
+  "_id": "5f00000000000000000000c1",
+  "type": "merchant",
+  "merchant_id": "5f00000000000000000000f1",
+  "payer_id": "5f00000000000000000000a1",
+  "purchase_date": "2026-10-21",
+  "amount": 120.5,
+  "status": "pending",
+  "medium": "balance",
+  "description": "groceries"
+}

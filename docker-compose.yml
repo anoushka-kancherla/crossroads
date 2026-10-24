@@ -1,0 +1,76 @@
+# Local run: copy .env.example to .env, then `docker compose up --build`.
+# Customer app http://localhost:8080 - internal dashboard http://localhost:8081.
+# The internal API publishes no port, and only the internal app can reach it.
+
+x-db-url: &db-url postgresql://${POSTGRES_USER:-crossroads}:${POSTGRES_PASSWORD:-crossroads}@db:5432/${POSTGRES_DB:-crossroads}
+
+services:
+  db:
+    # TimescaleDB (Tiger Data) on PostgreSQL 16. Verify the current image tag before deploying.
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crossroads}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crossroads}
+      POSTGRES_DB: ${POSTGRES_DB:-crossroads}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks: [customer-net, internal-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crossroads} -d ${POSTGRES_DB:-crossroads}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  customer-api:
+    build: ./backend
+    command: uvicorn crossroads.customer_api.main:app --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: *db-url
+      NESSIE_API_KEY: ${NESSIE_API_KEY:-}
+      SERPAPI_API_KEY: ${SERPAPI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+    networks: [customer-net]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  internal-api:
+    build: ./backend
+    command: uvicorn crossroads.internal_api.main:app --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: *db-url
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      STAFF_USER: ${STAFF_USER:-}
+      STAFF_PASSWORD_HASH: ${STAFF_PASSWORD_HASH:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+    networks: [internal-net]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  customer-app:
+    build: ./customer-app
+    ports:
+      - "8080:80"
+    networks: [customer-net]
+    depends_on:
+      - customer-api
+
+  internal-app:
+    build: ./internal-app
+    ports:
+      - "8081:80"
+    networks: [internal-net]
+    depends_on:
+      - internal-api
+
+# Two networks keep the customer side from reaching the internal API (FR-026): only the database
+# sits on both.
+networks:
+  customer-net:
+  internal-net:
+
+volumes:
+  db-data:

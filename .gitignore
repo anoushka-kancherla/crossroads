@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+node_modules/
+dist/
+coverage/
+.DS_Store
+
+# Spec Kit: feature documents (spec, plan, tasks, wireframes), its tooling, and Claude Code config
+specs/
+.specify/
+.claude/
