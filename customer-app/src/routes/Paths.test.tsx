@@ -283,7 +283,7 @@ describe("Your paths", () => {
     expect(screen.queryByText(/Fits your budget/)).not.toBeInTheDocument();
     expect(within(screen.getByRole("article", { name: "Keep as is" })).getByText("Closest")).toBeInTheDocument();
     // there is no recommendation to hold steady, so it must not claim one does
-    expect(screen.getByText(/There is no recommendation yet/)).toBeInTheDocument();
+    expect(screen.getByText(/Nothing is recommended yet/)).toBeInTheDocument();
     expect(screen.queryByText(/holds across every setting/)).not.toBeInTheDocument();
     // every path says what it is missing, and none compares costs with a recommendation that does not exist
     for (const card of screen.getAllByRole("article")) {
@@ -295,7 +295,7 @@ describe("Your paths", () => {
   it("says the recommendation is stable when no input would flip it", async () => {
     stubFetch(serve(result({ flips: [] })));
     renderPaths();
-    expect(await screen.findByText("Your recommendation holds across every setting of the sliders.")).toBeInTheDocument();
+    expect(await screen.findByText("Your recommendation stays the same at every slider setting.")).toBeInTheDocument();
   });
 });
 

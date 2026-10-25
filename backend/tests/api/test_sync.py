@@ -53,20 +53,20 @@ def test_the_overview_shows_the_new_source_and_sync_time_afterwards():
 def test_with_no_bank_configured_it_says_so_and_changes_nothing():
     client, _ = make(None)
     r = sync(client)
-    assert r.status_code == 503 and r.json() == {"detail": "Your bank figures couldn't be refreshed right now."}
+    assert r.status_code == 503 and r.json() == {"detail": "We couldn't refresh your bank figures right now."}
     assert client.get("/api/customers/cust_01/overview").json()["money"]["synced_at"] is None
 
 
 def test_a_demo_customer_is_not_connected_to_a_bank():
     client, _ = make(FakeNessie())
     r = sync(client)
-    assert r.status_code == 409 and r.json() == {"detail": "This customer is demo data and is not connected to a bank."}
+    assert r.status_code == 409 and r.json() == {"detail": "This customer is demo data, so there's no bank to sync."}
 
 
 def test_when_nessie_fails_the_message_is_plain_and_the_figures_stay():
     client, _ = make(Broken())
     r = sync(client)
-    assert r.status_code == 503 and r.json() == {"detail": "Your bank figures couldn't be refreshed right now."}
+    assert r.status_code == 503 and r.json() == {"detail": "We couldn't refresh your bank figures right now."}
     assert "Nessie answered" not in r.text and "/customers/" not in r.text
     assert client.get("/api/customers/cust_01/overview").json()["money"]["source"] == "demo"
 

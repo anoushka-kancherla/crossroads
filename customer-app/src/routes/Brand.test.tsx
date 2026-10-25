@@ -77,7 +77,7 @@ afterEach(() => {
 });
 
 describe("branded header", () => {
-  it.each(["/", "/paths"])("holds a logo slot and the product name on %s", async (path) => {
+  it.each(["/overview", "/paths"])("holds a logo slot and the product name on %s", async (path) => {
     serve();
     renderAt(path);
     const header = screen.getByRole("banner");
@@ -90,7 +90,7 @@ describe("branded header", () => {
 describe("Overview buttons", () => {
   it("has exactly one primary button, and the sync button is secondary", async () => {
     serve();
-    const { container } = renderAt("/");
+    const { container } = renderAt("/overview");
     await screen.findByRole("link", { name: "See my options" });
     expect(container.querySelectorAll(".primary")).toHaveLength(1);
     expect(screen.getByRole("link", { name: "See my options" })).toHaveClass("primary");

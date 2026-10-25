@@ -20,8 +20,9 @@ from .auth import (
     make_token,
     require_staff,
 )
+from .live_service import build_live, etag_of
 from .portfolio_service import build_portfolio, refresh_snapshots
-from .schemas import FairnessResponse, LoginRequest, PortfolioResponse, SessionOut, fairness_response
+from .schemas import FairnessResponse, LiveResponse, LoginRequest, PortfolioResponse, SessionOut, fairness_response
 from .snapshots import SnapshotStore
 
 log = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ router = APIRouter(prefix="/api/internal")
 def login(body: LoginRequest, request: Request, response: Response):
     auth: AuthState = request.app.state.auth
     if not auth.configured:
-        raise HTTPException(status_code=503, detail="Staff sign-in is not configured.")
+        raise HTTPException(status_code=503, detail="Staff sign-in isn't set up yet.")
     ip, now = client_ip(request), auth.clock()
     # A locked address is refused before the password is looked at, so the answer says nothing about it.
     wait = auth.limiter.retry_after(ip, now)
@@ -88,6 +89,22 @@ def refresh(request: Request, _: dict = Depends(require_staff)):
     return portfolio
 
 
+@router.get("/live", response_model=LiveResponse)
+def live(request: Request, response: Response, _: dict = Depends(require_staff)):
+    """The live acceptance figures. Sends an ETag, and 304 when nothing has changed since the caller's copy."""
+    try:
+        figures = build_live(request.app.state.store)
+    except Exception:
+        log.exception("The live figures could not be read")
+        raise HTTPException(status_code=503, detail="We can't load the live figures right now.") from None
+    tag = etag_of(figures)
+    headers = {"ETag": tag, "Cache-Control": "no-cache"}
+    if request.headers.get("if-none-match") == tag:
+        return Response(status_code=304, headers=headers)
+    response.headers.update(headers)
+    return figures
+
+
 @router.get("/fairness", response_model=FairnessResponse)
 def fairness(request: Request, _: dict = Depends(require_staff)):
     """The fairness check on the separate synthetic population: band-level figures only, read-only."""
@@ -95,7 +112,7 @@ def fairness(request: Request, _: dict = Depends(require_staff)):
         return fairness_response(request.app.state.fairness.get())
     except Exception:
         log.exception("The fairness report could not be computed")
-        raise HTTPException(status_code=503, detail="The fairness figures couldn't be computed right now.") from None
+        raise HTTPException(status_code=503, detail="We couldn't work out the fairness figures right now.") from None
 
 
 @router.get("/openapi.json", include_in_schema=False)

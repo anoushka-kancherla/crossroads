@@ -25,8 +25,8 @@ from .scoring import score
 
 LIMITS = (
     "Only income is examined. Other characteristics are not covered.",
-    "The customers are synthetic. This shows how the engine behaves on this population; it cannot show "
-    "that real customers are treated fairly or unfairly.",
+    "The customers are synthetic. This shows how the engine behaves on this population, not how real "
+    "customers are treated.",
     "This is a demonstration of the method, not a legal fair-lending finding.",
 )
 

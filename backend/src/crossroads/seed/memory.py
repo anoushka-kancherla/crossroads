@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from ..adapters.dealers import Dealer
 from ..adapters.nessie import NessieClient
-from ..customer_api.store import CustomerListEntry, CustomerRecord, NotConnected, VehicleInfo
+from ..customer_api.store import Acceptance, CustomerListEntry, CustomerRecord, NotConnected, VehicleInfo
 from ..db.nessie_sync import is_real
 from .profiles import AS_OF, Profile, payment_history, synthetic_quote
 
@@ -26,12 +26,27 @@ class InMemoryStore:
         self._profiles = {p.id: p for p in sorted(profiles, key=lambda p: p.id)}
         self._dealers: dict[str, list[Dealer]] = {}
         self._synced: dict[str, datetime] = {}
+        self._acceptances: list[Acceptance] = []
 
     def dealer_candidates(self, zip_code: str) -> list[Dealer] | None:
         return self._dealers.get(zip_code)
 
     def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None:
         self._dealers[zip_code] = list(dealers)
+
+    def record_acceptance(self, entry: Acceptance) -> None:
+        self._acceptances.append(entry)
+
+    def latest_acceptances(self) -> list[Acceptance]:
+        """One per customer: the latest by time, and the one recorded later when times tie."""
+        latest: dict[str, Acceptance] = {}
+        for e in self._acceptances:
+            if e.customer_id not in latest or e.ts >= latest[e.customer_id].ts:
+                latest[e.customer_id] = e
+        return [latest[k] for k in sorted(latest)]
+
+    def acceptance_count(self) -> int:
+        return len(self._acceptances)
 
     def list_customers(self) -> list[CustomerListEntry]:
         return [CustomerListEntry(p.id, p.display_name, p.vehicle_label) for p in self._profiles.values()]

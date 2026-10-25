@@ -92,6 +92,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/internal/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live
+         * @description The live acceptance figures. Sends an ETag, and 304 when nothing has changed since the caller's copy.
+         */
+        get: operations["live_api_internal_live_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/internal/fairness": {
         parameters: {
             query?: never;
@@ -229,6 +249,29 @@ export interface components {
             avg_savings: string;
             /** Explanations Verified Pct */
             explanations_verified_pct: string;
+        };
+        /**
+         * LiveResponse
+         * @description The staff dashboard's live acceptance figures, worked out on the server from the acceptance log.
+         */
+        LiveResponse: {
+            /** Accepted Customers */
+            accepted_customers: number;
+            /** Customers Total */
+            customers_total: number;
+            /** Retained Customers */
+            retained_customers: number;
+            /** Retained Pct */
+            retained_pct: string | null;
+            /** Revenue Total */
+            revenue_total: string;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -490,6 +533,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PortfolioResponse"];
+                };
+            };
+        };
+    };
+    live_api_internal_live_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveResponse"];
                 };
             };
         };

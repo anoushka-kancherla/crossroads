@@ -3,6 +3,9 @@ data or any cross-customer figure (FR-024)."""
 
 from __future__ import annotations
 
+import logging
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..adapters.dealers import DealersClient
@@ -41,8 +44,9 @@ from .schemas import (
     SpendingResponse,
     SyncResponse,
 )
-from .store import CustomerRecord, CustomerStore, NotConnected
+from .store import Acceptance, CustomerRecord, CustomerStore, NotConnected
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 
 
@@ -143,14 +147,32 @@ def dealers(
     )
 
 
+def _log_acceptance(store: CustomerStore, rec: CustomerRecord, body: NextStepRequest, cfg: Config) -> None:
+    """Record what the customer pressed, with that path's own figures for the settings they saw. A failure
+    here is logged and never reaches the customer (FR-003)."""
+    try:
+        _, inp = _scenario_for(rec, body.inputs, cfg)
+        option = next(o for o in evaluate(inp, cfg).options if o.path == body.path)
+        store.record_acceptance(Acceptance(rec.id, body.path, option.retained, option.revenue, datetime.now(UTC)))
+    except Exception:
+        log.exception("An acceptance could not be recorded for %s", rec.id)
+
+
 @router.post("/customers/{customer_id}/next-step", response_model=NextStepResponse)
-def next_step(customer_id: str, body: NextStepRequest, store: CustomerStore = Depends(get_store)):
-    """Confirm the customer's chosen next step, or a request to talk to a specialist. Stateless: it
-    starts no transaction and stores nothing."""
+def next_step(
+    customer_id: str,
+    body: NextStepRequest,
+    store: CustomerStore = Depends(get_store),
+    cfg: Config = Depends(get_cfg),
+):
+    """Confirm the customer's chosen next step, or a request to talk to a specialist. It starts no
+    transaction. Pressing the main button also logs one acceptance for the staff dashboard (FR-001)."""
     rec = _record(store, customer_id)
     allowed = LEASE_PATHS if rec.contract.type == "lease" else LOAN_PATHS
     if body.path not in allowed:
         raise HTTPException(status_code=422, detail="That is not one of your options.")
+    if body.kind == "primary":
+        _log_acceptance(store, rec, body, cfg)
     step = next_step_of(body.path)
     return NextStepResponse(
         path_label=PATH_LABELS[body.path],
@@ -174,7 +196,7 @@ def explanation(
     return build_explanation(inp, cfg, explain)
 
 
-SYNC_UNAVAILABLE = "Your bank figures couldn't be refreshed right now."
+SYNC_UNAVAILABLE = "We couldn't refresh your bank figures right now."
 
 
 @router.post(
@@ -196,7 +218,7 @@ def sync(
         rec = store.sync_from_nessie(customer_id, nessie)
     except NotConnected:
         raise HTTPException(
-            status_code=409, detail="This customer is demo data and is not connected to a bank."
+            status_code=409, detail="This customer is demo data, so there's no bank to sync."
         ) from None
     except NessieError:
         raise HTTPException(status_code=503, detail=SYNC_UNAVAILABLE) from None

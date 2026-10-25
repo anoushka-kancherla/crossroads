@@ -53,10 +53,10 @@ def _basis_label(basis: str, cfg: Config) -> str:
     if basis == "history":
         return "Based on your odometer history"
     if basis == "allowance":
-        return "Based on your lease allowance, because there is little odometer history"
+        return "Based on your lease allowance, since there's little odometer history"
     return (
         f"Based on a typical U.S. driver ({cfg.baseline_miles:,} miles a year, illustrative), "
-        "because there is little odometer history"
+        "since there's little odometer history"
     )
 
 
@@ -104,8 +104,8 @@ def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Conf
     else:
         pct = format((cfg.depreciation * 100).normalize(), "f")
         label = (
-            f"Estimated from the original price with an illustrative {pct}% yearly depreciation; "
-            "no local listings found"
+            f"Estimated from the original price with an illustrative {pct}% yearly depreciation, "
+            "since no local listings were found"
         )
 
     payoff = c.balance if not lease else c.residual + c.monthly_payment * c.months_left

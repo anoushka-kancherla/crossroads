@@ -85,31 +85,31 @@ def assumptions_for(inp: EngineInputs, cfg: Config) -> list[str]:
     cls, lease = inp.customer.vehicle_class, inp.customer.contract.type == "lease"
     pct = format((cfg.depreciation * 100).normalize(), "f")
     items = [
-        f"Your monthly budget starts at your income minus your bills minus {fmt_money(cfg.buffer)} kept free.",
-        f"A car you give up before the five years are up is replaced by a lease at "
+        f"Your monthly budget starts at your income minus bills and {fmt_money(cfg.buffer)} kept free.",
+        f"If you give the car up early, we assume a replacement lease at "
         f"{fmt_money(cfg.replacement_monthly[cls])} a month with {fmt_money(cfg.replacement_due)} due at signing "
         "(illustrative).",
-        f"A car loses {pct}% of its value a year, adjusted by ${cfg.per_mile:.2f} for each mile a year above or "
-        f"below {cfg.baseline_miles:,}, and is never worth less than {int(cfg.value_floor * 100)}% of today's "
+        f"A car loses {pct}% of its value a year, plus or minus ${cfg.per_mile:.2f} for each mile a year above or "
+        f"below {cfg.baseline_miles:,}. It never drops below {int(cfg.value_floor * 100)}% of today's "
         "value (illustrative).",
     ]
     if lease:
         items.append(
             f"Returning a lease and leaving Toyota costs a {fmt_money(cfg.disposition_fee)} disposition fee "
-            "(illustrative), which is waived when you move into another Toyota."
+            "(illustrative). It's waived if you move into another Toyota."
         )
-        items.append(f"A buy out is financed over {cfg.buyout_term_months} months at the financing rate.")
+        items.append(f"A buy out is financed over {cfg.buyout_term_months} months at your financing rate.")
     else:
         items.append(
             f"Paying extra principal adds {fmt_money(cfg.extra_principal_monthly)} a month, or the room left in "
-            "your budget if that is less (illustrative)."
+            "your budget if that's less (illustrative)."
         )
     return items
 
 
 _CONFIRMATIONS = {
     "specialist": "A Toyota Financial Services specialist will contact you to talk through your options.",
-    "keep_as_is": "You are staying on your current plan. Nothing changes and your contract continues as it is.",
+    "keep_as_is": "You're staying on your current plan. Nothing changes.",
 }
 
 

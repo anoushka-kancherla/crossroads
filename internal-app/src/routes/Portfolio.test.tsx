@@ -62,6 +62,11 @@ type Reply = { status?: number; body?: unknown; headers?: Record<string, string>
 type Routes = Partial<Record<string, Reply | (() => Reply)>>;
 
 /** Stubs fetch; the key is "METHOD path". Every call is recorded so a test can say what was never requested. */
+const QUIET_LIVE = {
+  accepted_customers: 0, customers_total: 12, retained_customers: 0, retained_pct: null,
+  revenue_total: "0", sequence: 0, updated_at: "2026-10-25T12:00:00Z",
+};
+
 function stubFetch(routes: Routes) {
   const calls: string[] = [];
   vi.stubGlobal(
@@ -69,7 +74,7 @@ function stubFetch(routes: Routes) {
     vi.fn(async (url: string, init?: RequestInit) => {
       const key = `${init?.method ?? "GET"} ${url}`;
       calls.push(key);
-      const entry = routes[key];
+      const entry = routes[key] ?? (key === "GET /api/internal/live" ? { body: QUIET_LIVE } : undefined);
       const reply = typeof entry === "function" ? entry() : entry;
       if (reply === undefined) throw new Error(`unexpected request ${key}`);
       if (reply === "never") return new Promise(() => {});
@@ -115,7 +120,8 @@ describe("portfolio dashboard", () => {
     stubFetch({ "GET /api/internal/session": signedIn, "GET /api/internal/portfolio": "never" });
     renderApp();
     expect(await screen.findByText("Signed in as staff")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    // the live panel loads beside the portfolio, so more than one status can be on screen
+    expect(screen.getAllByRole("status").some((el) => /Loading/.test(el.textContent ?? ""))).toBe(true);
   });
 
   it("shows the sign-in form, and asks for no portfolio, when there is no session", async () => {
@@ -129,7 +135,7 @@ describe("portfolio dashboard", () => {
   it("shows an empty state, with Refresh still available, before anything is computed", async () => {
     stubFetch({ "GET /api/internal/session": signedIn, "GET /api/internal/portfolio": { body: empty } });
     renderApp();
-    expect(await screen.findByText(/No recommendations have been computed yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No recommendations yet/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
   });
 
@@ -291,11 +297,11 @@ describe("staff sign-in", () => {
   it("says when sign-in is not set up", async () => {
     stubFetch({
       "GET /api/internal/session": unauthorized,
-      "POST /api/internal/login": { status: 503, body: { detail: "Staff sign-in is not configured." } },
+      "POST /api/internal/login": { status: 503, body: { detail: "Staff sign-in isn't set up yet." } },
     });
     renderApp();
     await screen.findByRole("form", { name: "Staff sign-in" });
     signIn("staff", "x");
-    expect(await screen.findByRole("alert")).toHaveTextContent("not configured");
+    expect(await screen.findByRole("alert")).toHaveTextContent("isn't set up");
   });
 });

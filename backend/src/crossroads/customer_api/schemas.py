@@ -236,6 +236,8 @@ class DealersResponse(BaseModel):
 class NextStepRequest(BaseModel):
     path: PathName
     kind: Literal["primary", "specialist"]
+    # The slider settings the customer was looking at; left out, the customer's own defaults are used.
+    inputs: PathsRequest | None = None
 
 
 class NextStepResponse(BaseModel):

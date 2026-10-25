@@ -120,7 +120,7 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
             Fits your budget: {money(best.monthly_payment)} a month, {money(rec.monthly_room_left)} room left
           </p>
         )}
-        <NextStep key={rec.path ?? "none"} customerId={customerId} path={rec.path} />
+        <NextStep key={rec.path ?? "none"} customerId={customerId} path={rec.path} inputs={data.inputs_used} />
       </section>
 
       <AskBox customerId={customerId} inputs={data.inputs_used} />
@@ -133,9 +133,9 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
           What would change this recommendation
         </h2>
         {best === undefined ? (
-          <p>There is no recommendation yet. Each path below shows what is holding it back.</p>
+          <p>Nothing is recommended yet. Each path below shows what's holding it back.</p>
         ) : data.flips.length === 0 ? (
-          <p>Your recommendation holds across every setting of the sliders.</p>
+          <p>Your recommendation stays the same at every slider setting.</p>
         ) : (
           <ul className="flips">
             {data.flips.map((f) => (

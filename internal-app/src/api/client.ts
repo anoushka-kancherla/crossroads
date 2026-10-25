@@ -4,6 +4,7 @@ import type { components } from "./types";
 export type Portfolio = components["schemas"]["PortfolioResponse"];
 export type PathRow = components["schemas"]["PathRowOut"];
 export type FairnessReport = components["schemas"]["FairnessResponse"];
+export type LiveFigures = components["schemas"]["LiveResponse"];
 export type Session = components["schemas"]["SessionOut"];
 
 const NETWORK_ERROR = "We couldn't reach the server. Please check your connection and try again.";
@@ -74,5 +75,6 @@ export const api = {
   },
   portfolio: async () => json<Portfolio>(await send("/api/internal/portfolio")),
   fairness: async () => json<FairnessReport>(await send("/api/internal/fairness")),
+  live: async () => json<LiveFigures>(await send("/api/internal/live")),
   refresh: async () => json<Portfolio>(await send("/api/internal/portfolio/refresh", { method: "POST" })),
 };

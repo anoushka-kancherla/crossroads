@@ -16,29 +16,28 @@ HEADLINES = {
 
 BODIES = {
     "normal": (
-        "{path_label} is your best next move. Over {horizon_years} it costs {cost_5yr} in total, "
-        "{savings_5yr} less than {compare_label}. Your payment would be {monthly_payment} a month "
-        "with {upfront_cost} due up front, leaving {monthly_room} of room in your monthly budget."
+        "{path_label} is your best move. Over {horizon_years} it costs {cost_5yr}, which is {savings_5yr} "
+        "less than {compare_label}. You'd pay {monthly_payment} a month with {upfront_cost} due up front, "
+        "leaving {monthly_room} of room in your budget."
     ),
     "only": (
         "{path_label} is the only path that fits your budget and cash right now. Over "
-        "{horizon_years} it costs {cost_5yr} in total, with a payment of {monthly_payment} a month "
-        "and {upfront_cost} due up front."
+        "{horizon_years} it costs {cost_5yr}: {monthly_payment} a month, with {upfront_cost} due up front."
     ),
     "none": (
-        "None of your paths fit your budget and cash right now. {path_label} comes closest, and "
-        "it is short by {shortfall_amount}."
+        "None of your paths fit your budget and cash yet. {path_label} comes closest, "
+        "but you're {shortfall_amount} short."
     ),
 }
 
 TRADEOFFS = {
-    "keep_as_is": "No change now, then a replacement lease when the car is given up.",
-    "buy_out": "You own the car, with a payment for the financed purchase price.",
-    "return_lease_new": "A new lease starts now, after the early return charge.",
-    "trade_in_early": "A new lease starts now, and any gap on the old loan is paid in cash.",
+    "keep_as_is": "No change now. You'd lease a replacement when you give the car up.",
+    "buy_out": "You own the car and pay off its financed price.",
+    "return_lease_new": "You start a new lease now, after an early return charge.",
+    "trade_in_early": "You start a new lease now and pay any gap on the old loan in cash.",
     "refinance": "Same car and loan, at a new rate.",
     "extra_principal": "Your spare monthly budget pays the loan down faster.",
-    "walk_away": "You return the car and leave Toyota, with a fee at return.",
+    "walk_away": "You return the car, leave Toyota and pay a fee.",
 }
 
 # One short line for each path that is not the recommendation: why it lost. Placeholders only.

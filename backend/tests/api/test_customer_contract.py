@@ -110,7 +110,7 @@ def test_a_database_outage_gives_a_readable_503_with_no_internals():
     for path in ("/api/customers", "/api/customers/cust_01/overview", "/api/customers/cust_01/spending"):
         r = broken.get(path)
         assert r.status_code == 503
-        assert "temporarily unavailable" in r.json()["detail"]
+        assert "can't load your data" in r.json()["detail"]
         assert "hunter2" not in r.text and "Traceback" not in r.text
 
 

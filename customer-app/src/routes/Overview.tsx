@@ -98,15 +98,15 @@ function OverviewBody({
           {view === "payments" && <PaymentsChart customerId={customerId} />}
           {lease && proj.overage_miles ? (
             <StatusMessage variant="warning" label="Over your allowance">
-              {`Projection: ${count(proj.overage_miles)} miles over allowance at lease end, about ${money(proj.overage_fee ?? "0")} in fees`}
+              {`At this pace you'll finish ${count(proj.overage_miles)} miles over your allowance, about ${money(proj.overage_fee ?? "0")} in fees.`}
             </StatusMessage>
           ) : lease ? (
             <StatusMessage variant="positive" label="Within your allowance">
-              Projection: you are within your mileage allowance at lease end.
+              At this pace you'll finish within your mileage allowance.
             </StatusMessage>
           ) : (
             <StatusMessage variant="neutral" label="No allowance">
-              Projection: there is no mileage allowance on a loan, so no overage fees.
+              A loan has no mileage allowance, so there are no overage fees.
             </StatusMessage>
           )}
           <p className="basis">

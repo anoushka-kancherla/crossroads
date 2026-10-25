@@ -38,7 +38,16 @@ nav[aria-label="Main"] a.active { color: var(--color-text); border-bottom-color:
   width: min(100%, calc(var(--space-7) * 2.5)); aspect-ratio: 3 / 1;
 }
 .logo-card { width: min(100%, calc(var(--space-7) * 3.4)); }
-.logo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* With a logo set, the slot is as wide as the logo at its height, so there is no empty space beside it. */
+.logo-slot.has-logo { width: auto; max-width: 100%; aspect-ratio: auto; height: calc(var(--space-5) + var(--space-4)); }
+.logo-card.has-logo { height: calc(var(--space-7) + var(--space-3)); }
+.logo-probe { display: block; height: 100%; width: auto; max-width: 100%; visibility: hidden; }
+/* and the product name sits right beside it */
+.logo-slot.has-logo + .brand, .logo-slot.has-logo + .brand-block { margin-left: calc(var(--space-2) - var(--space-5)); }
+.logo-mask {
+  position: absolute; inset: 0; background-color: var(--color-primary);
+  -webkit-mask: var(--logo-url) center / contain no-repeat; mask: var(--logo-url) center / contain no-repeat;
+}
 .logo-placeholder {
   position: absolute; inset: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center;
   border: 1px dashed var(--color-border-strong); border-radius: var(--radius-input);
@@ -85,6 +94,9 @@ main:has(> .login-page) { display: flex; flex-direction: column; }
 .tile-label { font-size: var(--text-small); font-weight: 600; }
 .tile-value { order: -1; font-family: var(--font-numbers); font-variant-numeric: tabular-nums; font-size: var(--text-hero); line-height: 1.15; font-weight: 600; color: var(--color-primary); overflow-wrap: break-word; }
 .tile { display: flex; flex-direction: column; gap: var(--space-1); }
+.live { margin-bottom: var(--space-5); }
+.live h2 { margin: 0 0 var(--space-3); }
+.live .tiles { margin-bottom: var(--space-2); }
 .tile-sub { font-size: var(--text-caption); color: var(--color-text-muted); }
 .columns { display: flex; flex-wrap: wrap; gap: var(--space-5); margin-bottom: var(--space-5); align-items: flex-start; }
 .columns > * { min-width: 0; }

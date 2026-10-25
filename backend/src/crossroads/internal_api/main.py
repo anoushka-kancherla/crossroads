@@ -74,7 +74,7 @@ def create_app(
 
     @app.exception_handler(psycopg.Error)
     async def database_unavailable(request: Request, exc: psycopg.Error) -> JSONResponse:
-        return JSONResponse(status_code=503, content={"detail": "Data is temporarily unavailable. Please try again."})
+        return JSONResponse(status_code=503, content={"detail": "We can't load the data right now. Please try again."})
 
     @app.exception_handler(RequestValidationError)
     async def invalid_input(request: Request, exc: RequestValidationError) -> JSONResponse:

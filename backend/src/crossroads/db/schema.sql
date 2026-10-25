@@ -142,6 +142,20 @@ CREATE TABLE IF NOT EXISTS transactions (
   UNIQUE (nessie_purchase_id, ts)
 );
 
+-- The log of accepted recommendations (feature 005): one row each time a customer accepts their recommended
+-- path. Append-only, with no foreign key so a re-seed never fails because of old entries.
+CREATE TABLE IF NOT EXISTS acceptances (
+  ts timestamptz NOT NULL,
+  customer_id text NOT NULL,
+  path text NOT NULL,
+  retained boolean NOT NULL,
+  revenue numeric(12,2) NOT NULL
+);
+
+SELECT create_hypertable('acceptances', 'ts', if_not_exists => TRUE);
+
+CREATE INDEX IF NOT EXISTS acceptances_customer_ts ON acceptances (customer_id, ts DESC);
+
 SELECT create_hypertable('odometer_readings', 'ts', if_not_exists => TRUE);
 
 SELECT create_hypertable('payments', 'ts', if_not_exists => TRUE);

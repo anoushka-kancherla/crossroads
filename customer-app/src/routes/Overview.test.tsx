@@ -66,7 +66,7 @@ function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={["/overview"]}>
         <App />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -118,10 +118,10 @@ describe("Customer overview states", () => {
     stubFetch((url) =>
       url === "/api/customers"
         ? { body: customers }
-        : { status: 503, body: { detail: "Customer data is temporarily unavailable. Please try again in a moment." } },
+        : { status: 503, body: { detail: "We can't load your data right now. Please try again in a moment." } },
     );
     renderApp();
-    expect(await screen.findByRole("alert")).toHaveTextContent("temporarily unavailable");
+    expect(await screen.findByRole("alert")).toHaveTextContent("can't load your data");
   });
 });
 
@@ -140,7 +140,7 @@ describe("Customer overview", () => {
     expect(screen.getByText(/From 8 local listings.*· Google results via SerpApi/)).toBeInTheDocument();
     expect(screen.getByText("$2,250")).toBeInTheDocument();
     expect(screen.getByText("Balances, income and bills from Capital One Nessie (sandbox)")).toBeInTheDocument();
-    expect(screen.getByText(/12,000 miles over allowance at lease end, about \$3,000 in fees/)).toBeInTheDocument();
+    expect(screen.getByText(/12,000 miles over your allowance, about \$3,000 in fees/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "See my options" })).toHaveAttribute("href", "/paths");
   });
 
@@ -160,7 +160,7 @@ describe("Customer overview", () => {
     await screen.findByText("Hi Maya, here's where you stand");
     fireEvent.change(screen.getByLabelText("Demo customer"), { target: { value: "cust_07" } });
     expect(await screen.findByText("No mileage allowance")).toBeInTheDocument();
-    expect(screen.getByText(/no mileage allowance on a loan, so no overage fees/)).toBeInTheDocument();
+    expect(screen.getByText(/A loan has no mileage allowance, so there are no overage fees/)).toBeInTheDocument();
     expect(screen.queryByText(/in fees/)).not.toBeInTheDocument();
   });
 
@@ -228,13 +228,13 @@ describe("Sync from my bank (FR-039)", () => {
   it("keeps the last figures and says so in plain words when the bank cannot be reached", async () => {
     stubFetch((url) =>
       url.endsWith("/sync")
-        ? { status: 503, body: { detail: "Your bank figures couldn't be refreshed right now." } }
+        ? { status: 503, body: { detail: "We couldn't refresh your bank figures right now." } }
         : happy(url),
     );
     renderApp();
     await screen.findByText("$3,100");
     fireEvent.click(screen.getByRole("button", { name: "Sync from my bank" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Your bank figures couldn't be refreshed right now.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't refresh your bank figures right now.");
     expect(screen.getByText("$3,100")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sync from my bank" })).toBeEnabled();
   });

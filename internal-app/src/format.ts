@@ -15,3 +15,8 @@ export function count(n: number): string {
 export function dateLabel(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
+
+/** The clock time of an ISO instant, in the viewer's own time zone. */
+export function timeLabel(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+}

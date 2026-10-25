@@ -30,11 +30,11 @@ const confirmed = (text = "You chose Buy out. A Toyota Financial Services specia
   body: { path_label: "Buy out", confirmation: text, step_type: "eligible_offer", step_label: "Eligible offer" },
 });
 
-function renderStep(path: NextStepRequest["path"] | null = "buy_out") {
+function renderStep(path: NextStepRequest["path"] | null = "buy_out", inputs?: NextStepRequest["inputs"]) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <NextStep customerId="cust_01" path={path} />
+      <NextStep customerId="cust_01" path={path} inputs={inputs} />
     </QueryClientProvider>,
   );
 }
@@ -72,6 +72,23 @@ describe("NextStep", () => {
     expect(screen.getByText("Toyota dealers near you")).toBeInTheDocument();
   });
 
+  it("sends the slider values that produced the recommendation with the primary step only", async () => {
+    const inputs = { monthly_budget: "600", annual_miles: 12000 };
+    const fn = stub(confirmed(), { body: dealers });
+    renderStep("buy_out", inputs);
+    fireEvent.click(screen.getByRole("button", { name: "Start buyout" }));
+    await screen.findByText(/You chose Buy out/);
+    expect(sent(fn)).toEqual([{ path: "buy_out", kind: "primary", inputs }]);
+  });
+
+  it("does not send the slider values with 'Talk to a specialist'", async () => {
+    const fn = stub(confirmed("A Toyota Financial Services specialist will contact you."), { body: dealers });
+    renderStep("buy_out", { monthly_budget: "600" });
+    fireEvent.click(screen.getByRole("button", { name: "Talk to a specialist" }));
+    await screen.findByText(/specialist will contact you/);
+    expect(sent(fn)).toEqual([{ path: "buy_out", kind: "specialist" }]);
+  });
+
   it("sends 'Talk to a specialist' as its own kind", async () => {
     const fn = stub(confirmed("A Toyota Financial Services specialist will contact you."), { body: dealers });
     renderStep("buy_out");
@@ -96,11 +113,11 @@ describe("NextStep", () => {
   });
 
   it("shows the confirmation even when the dealer request fails", async () => {
-    stub(confirmed(), { status: 503, body: { detail: "Nearby dealers couldn't be loaded right now." } });
+    stub(confirmed(), { status: 503, body: { detail: "We couldn't load nearby dealers right now." } });
     renderStep();
     fireEvent.click(screen.getByRole("button", { name: "Start buyout" }));
     expect(await screen.findByText(/You chose Buy out/)).toBeInTheDocument();
-    expect(await screen.findByRole("alert")).toHaveTextContent("Nearby dealers couldn't be loaded right now.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't load nearby dealers right now.");
   });
 
   it("shows a readable error, not a stack trace, when the dealer service cannot be reached", async () => {

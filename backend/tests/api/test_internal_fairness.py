@@ -107,7 +107,7 @@ def test_a_failing_computation_is_a_503_with_nothing_partial():
 
     r = client(fairness=Broken()).get(f"{URL}/fairness")
     assert r.status_code == 503
-    assert r.json() == {"detail": "The fairness figures couldn't be computed right now."}
+    assert r.json() == {"detail": "We couldn't work out the fairness figures right now."}
 
 
 def test_a_population_of_zero_is_the_empty_state():

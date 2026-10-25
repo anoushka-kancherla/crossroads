@@ -66,7 +66,7 @@ def protected_routes():
 def test_the_router_has_the_routes_we_expect():
     assert {p for _, p in protected_routes()} == {
         f"{URL}/logout", f"{URL}/session", f"{URL}/portfolio", f"{URL}/portfolio/refresh", f"{URL}/fairness",
-        f"{URL}/openapi.json",
+        f"{URL}/live", f"{URL}/openapi.json",
     }
 
 
@@ -131,7 +131,7 @@ def test_a_malformed_sign_in_is_a_readable_422_not_a_stack_trace(creds):
 def test_with_no_staff_credentials_configured_sign_in_says_so_and_never_succeeds(creds):
     client, _ = build(creds, staff_password_hash="")
     r = client.post(f"{URL}/login", json={"username": creds.user, "password": creds.password})
-    assert r.status_code == 503 and "not configured" in r.json()["detail"] and "set-cookie" not in r.headers
+    assert r.status_code == 503 and "isn't set up" in r.json()["detail"] and "set-cookie" not in r.headers
     client, _ = build(creds, session_secret="")
     assert client.post(f"{URL}/login", json={"username": creds.user, "password": creds.password}).status_code == 503
 

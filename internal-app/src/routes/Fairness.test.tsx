@@ -44,7 +44,7 @@ const report = (verdict: Verdict | null = verdictOf()): FairnessReport => ({
   ],
   limits: [
     "Only income is examined. Other characteristics are not covered.",
-    "The customers are synthetic. This shows how the engine behaves on this population; it cannot show that real customers are treated fairly or unfairly.",
+    "The customers are synthetic. This shows how the engine behaves on this population; it not how real customers are treated or unfairly.",
     "This is a demonstration of the method, not a legal fair-lending finding.",
   ],
 });
@@ -98,14 +98,14 @@ describe("fairness page states", () => {
   it("shows an empty state, not zeros, when the population has no customers", async () => {
     stubFetch({ [SESSION]: signedIn, [FAIR]: { body: { ...report(null), empty: true, bands: [], by_type: [], path_mix: [] } } });
     renderAt("/fairness");
-    expect(await screen.findByText(/no fairness figures are available yet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no fairness figures yet/i)).toBeInTheDocument();
     expect(screen.queryByText(/No evidence/)).not.toBeInTheDocument();
   });
 
   it("shows a readable error, not a stack trace", async () => {
-    stubFetch({ [SESSION]: signedIn, [FAIR]: { status: 503, body: { detail: "The fairness figures couldn't be computed right now." } } });
+    stubFetch({ [SESSION]: signedIn, [FAIR]: { status: 503, body: { detail: "We couldn't work out the fairness figures right now." } } });
     renderAt("/fairness");
-    expect(await screen.findByRole("alert")).toHaveTextContent("The fairness figures couldn't be computed right now.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't work out the fairness figures right now.");
   });
 
   it("shows the sign-in form and makes no fairness request without a session", async () => {
@@ -218,7 +218,7 @@ describe("fairness page content", () => {
     stubFetch({ [SESSION]: signedIn, [FAIR]: { body: report() } });
     renderAt("/fairness");
     const sec = await screen.findByRole("region", { name: "Loan and lease" });
-    expect(sec).toHaveTextContent("do not change the verdict");
+    expect(sec).toHaveTextContent("don't change the verdict");
     const [loan, lease] = within(sec).getAllByRole("row").slice(1);
     expect(loan).toHaveTextContent("2.0 points");
     expect(loan).toHaveTextContent("-9.1 to 12.8");

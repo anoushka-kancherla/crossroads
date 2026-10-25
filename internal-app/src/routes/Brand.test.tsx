@@ -29,12 +29,18 @@ const portfolio = {
   self_service_pct: "42", assumptions: ["Values are illustrative."],
 };
 
+const QUIET_LIVE = {
+  accepted_customers: 0, customers_total: 12, retained_customers: 0, retained_pct: null,
+  revenue_total: "0", sequence: 0, updated_at: "2026-10-25T12:00:00Z",
+};
+
 type Reply = { status?: number; body?: unknown } | "never";
 function serve(routes: Record<string, Reply>) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
-      const reply = routes[`${init?.method ?? "GET"} ${url}`];
+      const key = `${init?.method ?? "GET"} ${url}`;
+      const reply = routes[key] ?? (key === "GET /api/internal/live" ? { body: QUIET_LIVE } : undefined);
       if (reply === undefined) throw new Error(`unexpected request ${url}`);
       if (reply === "never") return new Promise(() => {});
       const status = reply.status ?? 200;
@@ -130,18 +136,19 @@ describe("states", () => {
     serve({ [SESSION]: signedIn, "GET /api/internal/portfolio": "never" });
     renderAt("/");
     await screen.findByText(/Signed in as/);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading");
+    // the live panel loads beside the portfolio, so more than one status can be on screen
+    expect(screen.getAllByRole("status").some((el) => /Loading/.test(el.textContent ?? ""))).toBe(true);
   });
 
   it("shows an empty state on Business value", async () => {
     serve({ [SESSION]: signedIn, "GET /api/internal/portfolio": { body: { ...portfolio, empty: true } } });
     renderAt("/");
-    expect(await screen.findByText(/No recommendations have been computed yet/)).toBeInTheDocument();
+    expect(await screen.findByText(/No recommendations yet/)).toBeInTheDocument();
   });
 
   it("shows a readable error on Business value", async () => {
-    serve({ [SESSION]: signedIn, "GET /api/internal/portfolio": { status: 500, body: { detail: "Data is temporarily unavailable." } } });
+    serve({ [SESSION]: signedIn, "GET /api/internal/portfolio": { status: 500, body: { detail: "We can't load the data right now." } } });
     renderAt("/");
-    expect(await screen.findByRole("alert")).toHaveTextContent("Data is temporarily unavailable.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("We can't load the data right now.");
   });
 });

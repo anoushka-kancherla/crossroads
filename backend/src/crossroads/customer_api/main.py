@@ -80,7 +80,7 @@ def create_app(
     @app.exception_handler(DealerLookupError)
     async def dealers_unavailable(request: Request, exc: DealerLookupError) -> JSONResponse:
         # The confirmation never depends on this: the screen shows the next step either way.
-        return JSONResponse(status_code=503, content={"detail": "Nearby dealers couldn't be loaded right now."})
+        return JSONResponse(status_code=503, content={"detail": "We couldn't load nearby dealers right now."})
 
     @app.exception_handler(RequestValidationError)
     async def invalid_input(request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -99,7 +99,7 @@ def create_app(
         # A readable message, never a stack trace (principle VI).
         return JSONResponse(
             status_code=503,
-            content={"detail": "Customer data is temporarily unavailable. Please try again in a moment."},
+            content={"detail": "We can't load your data right now. Please try again in a moment."},
         )
 
     @app.get("/healthz")

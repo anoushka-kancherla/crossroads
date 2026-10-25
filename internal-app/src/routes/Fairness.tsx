@@ -55,7 +55,7 @@ export default function Fairness() {
       error={report.error}
       data={report.data}
       isEmpty={(d) => d.empty}
-      emptyMessage="No fairness figures are available yet: the synthetic population has no customers."
+      emptyMessage="No fairness figures yet: the synthetic population is empty."
     >
       {(data) => <Report data={data} />}
     </QueryState>
@@ -103,8 +103,8 @@ function Report({ data }: { data: FairnessReport }) {
           </tbody>
         </table>
         <p className="note">
-          Profitability rank: where the recommended path sits among that customer's own affordable options by
-          Toyota's 5-year interest income. 0% is the least profitable option, 100% the most, 50% is neutral.
+          Profitability rank shows where the recommended path falls among that customer's own affordable options,
+          ordered by Toyota's 5-year interest income. 0% is the least profitable, 100% the most, and 50% is neutral.
         </p>
         <div className="chart" aria-label="Average profitability rank by band">
           <ResponsiveContainer width="100%" height="100%">
@@ -131,8 +131,7 @@ function Report({ data }: { data: FairnessReport }) {
         </div>
         <div className="warning" role="note">
           <StatusMessage variant="warning" label="Small bands are uncertain">
-            Results on a small band are uncertain. The number of customers behind every average and share is shown
-            beside it.
+            Results on a small band are uncertain, so each figure shows how many customers are behind it.
           </StatusMessage>
         </div>
       </section>
@@ -213,7 +212,7 @@ function Evidence({ bands }: { bands: Band[] }) {
       </table>
       <p className="note">
         Average interest income reflects contract size as well as recommendations and is not the steering measure.
-        Customers with only one affordable option have no real choice, so they are left out of the rank and the
+        Customers with only one affordable option have no real choice, so they're left out of the rank and the
         most-profitable count.
       </p>
     </section>
@@ -225,8 +224,7 @@ function PerType({ data }: { data: FairnessReport }) {
     <section className="panel panel-table" aria-label="Loan and lease">
       <h2>The same gap for loan and lease customers</h2>
       <p className="note">
-        Evidence only, not scored: these do not change the verdict above. They show whether a gap sits in one kind of
-        contract.
+        Evidence only: these don't change the verdict above. They show whether a gap sits in one kind of contract.
       </p>
       <table>
         <thead>

@@ -14,12 +14,12 @@ const PRIMARY: Record<string, string> = {
   walk_away: "Plan my return",
 };
 
-type Props = { customerId: string; path: NextStepRequest["path"] | null };
+type Props = { customerId: string; path: NextStepRequest["path"] | null; inputs?: NextStepRequest["inputs"] };
 
 /** The next-step button and "Talk to a specialist". Either one shows a confirmation, then the three
  *  nearest Toyota dealers. The confirmation never waits on the dealers: they load separately, with
  *  their own loading, empty and error states (FR-014, FR-035). */
-export function NextStep({ customerId, path }: Props) {
+export function NextStep({ customerId, path, inputs }: Props) {
   const step = useMutation({ mutationFn: (body: NextStepRequest) => api.nextStep(customerId, body) });
   const dealers = useQuery({
     queryKey: ["dealers", customerId],
@@ -32,7 +32,7 @@ export function NextStep({ customerId, path }: Props) {
     <div className="next-step">
       <div className="actions">
         {path && (
-          <button type="button" className="primary" disabled={step.isPending} onClick={() => step.mutate({ path, kind: "primary" })}>
+          <button type="button" className="primary" disabled={step.isPending} onClick={() => step.mutate({ path, kind: "primary", inputs })}>
             {PRIMARY[path] ?? "Next step"}
           </button>
         )}

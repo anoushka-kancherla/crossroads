@@ -38,7 +38,16 @@ textarea { width: 100%; }
   width: min(100%, calc(var(--space-7) * 2.5)); aspect-ratio: 3 / 1;
 }
 .logo-card { width: min(100%, calc(var(--space-7) * 3.4)); }
-.logo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* With a logo set, the slot is as wide as the logo at its height, so there is no empty space beside it. */
+.logo-slot.has-logo { width: auto; max-width: 100%; aspect-ratio: auto; height: calc(var(--space-5) + var(--space-4)); }
+.logo-card.has-logo { height: calc(var(--space-7) + var(--space-3)); }
+.logo-probe { display: block; height: 100%; width: auto; max-width: 100%; visibility: hidden; }
+/* and the product name sits right beside it */
+.logo-slot.has-logo + .brand, .logo-slot.has-logo + .brand-block { margin-left: calc(var(--space-2) - var(--space-5)); }
+.logo-mask {
+  position: absolute; inset: 0; background-color: var(--color-primary);
+  -webkit-mask: var(--logo-url) center / contain no-repeat; mask: var(--logo-url) center / contain no-repeat;
+}
 .logo-placeholder {
   position: absolute; inset: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center;
   border: 1px dashed var(--color-border-strong); border-radius: var(--radius-input);
@@ -154,3 +163,36 @@ button:disabled { opacity: 0.6; cursor: default; }
 /* Charts: axis text and direct labels use the chart tokens */
 .recharts-cartesian-axis-tick-value, .recharts-legend-item-text { font-size: var(--text-caption); fill: var(--chart-axis-text); color: var(--chart-axis-text); }
 .end-label { font-size: var(--text-small); font-weight: 600; fill: var(--color-text); }
+
+/* Landing: two equal halves that fill the window and stack on narrow ones */
+main.landing {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; min-height: 100dvh; padding: 0; margin: 0;
+}
+.landing-brand {
+  position: absolute; z-index: 1; top: var(--space-4); left: max(var(--space-5), 3vw);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+/* The header's rule pulls the name left to cancel its wider gap; here the gap alone sets the space. */
+.landing-brand .logo-slot.has-logo + .brand { margin-left: 0; }
+.landing-half {
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: var(--space-2);
+  box-sizing: border-box; padding: var(--space-8) max(var(--space-5), 3vw); text-align: center; text-decoration: none;
+}
+.landing-half:hover { text-decoration: none; }
+.landing-half h1 { font-size: var(--text-h1); }
+.landing-half p { margin: 0; font-size: var(--text-body); max-width: 28ch; }
+.landing-customer { background: var(--color-surface-green); color: var(--color-text); }
+.landing-customer h1 { color: var(--color-primary); }
+.landing-staff { background: var(--color-primary); color: var(--color-on-primary); }
+.landing-staff h1 { color: var(--color-on-primary); }
+a.landing-customer:hover { background: var(--color-surface-blue); }
+a.landing-staff:hover { background: var(--color-primary-hover); }
+.landing-half:focus-visible { outline: 3px solid var(--color-focus); outline-offset: calc(var(--space-2) * -1); }
+.landing-staff:focus-visible { outline-color: var(--color-on-primary); }
+.landing-staff.is-disabled { background: var(--color-surface-grey); color: var(--color-text-muted); }
+.landing-staff.is-disabled h1 { color: var(--color-text-muted); }
+@media (max-width: 900px) {
+  main.landing { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .landing-brand { left: var(--space-4); }
+  .landing-half { padding: var(--space-8) var(--space-4); min-height: calc(var(--control-height) * 3); }
+}

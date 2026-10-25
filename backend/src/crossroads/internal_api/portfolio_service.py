@@ -21,15 +21,15 @@ from .schemas import KpisOut, PathRowOut, PortfolioResponse, StepRowOut
 from .snapshots import SnapshotRow, SnapshotStore
 
 ASSUMPTIONS = [
-    "A customer is retained when their recommended path keeps a Toyota Financial Services contract; "
-    "returning the car and walking away does not.",
-    "Estimated revenue is Toyota's interest income over five years on the recommended path (the lease "
-    "rent charge on a lease), and is zero when the customer is not retained.",
+    "A customer is retained when their recommended path keeps a Toyota Financial Services contract. "
+    "Returning the car and walking away does not.",
+    "Estimated revenue is Toyota's interest income over five years on the recommended path (the rent "
+    "charge, for a lease). It is zero when the customer isn't retained.",
     "Average customer savings is the five-year cost of keeping the current plan minus the cost of the "
     "recommended path, for customers who have a recommendation.",
     "A customer with no affordable path counts as not retained and adds no revenue.",
     "Next steps are sorted into self-service, eligible offer and specialist follow-up by an illustrative "
-    "rule per path, not Toyota policy; self-service means the recommendation needs no specialist or offer.",
+    "rule for each path, not Toyota policy. Self-service means no specialist or offer is needed.",
     "Every figure comes from the demo customers' own recommendations, using illustrative values.",
 ]
 

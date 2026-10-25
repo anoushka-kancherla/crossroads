@@ -68,6 +68,18 @@ class PortfolioResponse(BaseModel):
     assumptions: list[str]
 
 
+class LiveResponse(BaseModel):
+    """The staff dashboard's live acceptance figures, worked out on the server from the acceptance log."""
+
+    accepted_customers: int
+    customers_total: int
+    retained_customers: int
+    retained_pct: Decimal | None  # whole percent of those who accepted; null when nobody has
+    revenue_total: Decimal  # whole dollars
+    sequence: int  # entries in the log; only ever grows
+    updated_at: datetime
+
+
 # --- fairness check (feature 002): band-level figures only, never an individual customer -----------------
 
 OutcomeName = Literal["no_evidence", "possible_steering", "not_enough"]

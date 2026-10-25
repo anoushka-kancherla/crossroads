@@ -209,7 +209,7 @@ def test_the_population_description():
 def test_limits_state_what_the_check_does_not_prove(built):
     text = " ".join(built.limits)
     assert "Only income is examined" in text and "Other characteristics are not covered" in text
-    assert "synthetic" in text and "cannot show that real customers are treated fairly" in text
+    assert "synthetic" in text and "not how real customers are treated" in text
     assert "not a legal fair-lending finding" in text
     assert built.cfg.gap_threshold_points == 15 and built.cfg.min_choice == 30
     assert (built.cfg.resamples, built.cfg.confidence, built.cfg.bootstrap_seed) == (1000, 95, 20261025)

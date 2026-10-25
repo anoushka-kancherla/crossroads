@@ -44,7 +44,11 @@ def test_the_customer_app_source_never_mentions_the_internal_side():
     assert len(files) > 10
     for f in files:
         text = f.read_text()
-        for needle in ("/api/internal", "internal-api", "internal-app", "8081", "staff", "portfolio", "fairness"):
+        needles = (
+            "/api/internal", "internal-api", "internal-app", "8081",
+            "staff", "portfolio", "fairness", "livepanel",
+        )
+        for needle in needles:
             assert needle not in text.lower(), f"{f.relative_to(ROOT)} mentions {needle!r}"
 
 
@@ -119,3 +123,25 @@ def test_the_fairness_package_reaches_into_neither_api_surface():
         text = f.read_text()
         assert not re.search(r"^\s*(from|import)\s.*internal_api", text, re.M), f.name
         assert not re.search(r"^\s*(from|import)\s.*customer_api\.(routes|main)", text, re.M), f.name
+
+
+def test_the_customer_side_only_writes_acceptances_and_never_reads_the_live_figures():
+    client = TestClient(customer_app(store=InMemoryStore(PROFILES)))
+    assert not [p for p in client.get("/api/openapi.json").json()["paths"] if "live" in p]
+    for f in (ROOT / "backend" / "src" / "crossroads" / "customer_api").glob("*.py"):
+        text = f.read_text()
+        assert "engine.live" not in text and "engine import live" not in text, f.name
+        assert not re.search(r"^\s*(from|import)\s.*internal_api", text, re.M), f.name
+    for f in sources("customer-app", ".ts", ".tsx"):
+        assert "/api/internal/live" not in f.read_text(), f.name
+
+
+def test_the_live_figures_module_is_pure():
+    import ast
+
+    from crossroads.engine import live
+
+    tree = ast.parse(Path(live.__file__).read_text())
+    names = {n.names[0].name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import)}
+    names |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    assert not names & {"random", "datetime", "time", "os"}

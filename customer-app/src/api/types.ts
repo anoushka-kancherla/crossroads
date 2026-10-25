@@ -127,8 +127,8 @@ export interface paths {
         put?: never;
         /**
          * Next Step
-         * @description Confirm the customer's chosen next step, or a request to talk to a specialist. Stateless: it
-         *     starts no transaction and stores nothing.
+         * @description Confirm the customer's chosen next step, or a request to talk to a specialist. It starts no
+         *     transaction. Pressing the main button also logs one acceptance for the staff dashboard (FR-001).
          */
         post: operations["next_step_api_customers__customer_id__next_step_post"];
         delete?: never;
@@ -411,6 +411,7 @@ export interface components {
              * @enum {string}
              */
             kind: "primary" | "specialist";
+            inputs?: components["schemas"]["PathsRequest"] | null;
         };
         /** NextStepResponse */
         NextStepResponse: {

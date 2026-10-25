@@ -33,6 +33,15 @@ const TEXT_PAIRS: [string, string][] = [
   ["--color-critical", "--color-critical-bg"],
   ["--color-neutral", "--color-neutral-bg"],
 ];
+// The landing page's two halves: dark text on the light half, white text on the primary half, and the focus ring on each.
+const LANDING_PAIRS: [string, string][] = [
+  ["--color-text", "--color-surface-green"],
+  ["--color-primary", "--color-surface-green"],
+  ["--color-on-primary", "--color-primary"],
+  ["--color-on-primary", "--color-primary-hover"],
+  ["--color-text-muted", "--color-surface-grey"],
+  ["--color-text", "--color-surface-blue"],
+];
 const GRAPHIC_PAIRS: [string, string][] = [
   ["--chart-green", "--color-bg"],
   ["--chart-blue", "--color-bg"],
@@ -40,10 +49,15 @@ const GRAPHIC_PAIRS: [string, string][] = [
   ["--chart-purple", "--color-bg"],
   ["--color-border-strong", "--color-bg"],
   ["--color-focus", "--color-bg"],
+  ["--color-focus", "--color-surface-green"],
+  ["--color-on-primary", "--color-primary"],
 ];
 
 describe("brand contrast (WCAG AA)", () => {
   it.each(TEXT_PAIRS)("text %s on %s is at least 4.5:1", (fg, bg) => {
+    expect(ratio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+  it.each(LANDING_PAIRS)("landing text %s on %s is at least 4.5:1", (fg, bg) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(4.5);
   });
   it.each(GRAPHIC_PAIRS)("graphic %s on %s is at least 3:1", (fg, bg) => {

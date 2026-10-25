@@ -64,7 +64,7 @@ def test_a_failed_lookup_is_a_readable_503_with_nothing_internal():
     client, _ = make(Down())
     r = client.get("/api/customers/cust_01/dealers")
     assert r.status_code == 503
-    assert r.json() == {"detail": "Nearby dealers couldn't be loaded right now."}
+    assert r.json() == {"detail": "We couldn't load nearby dealers right now."}
     assert "KEY" not in r.text and "secret" not in r.text
 
 
@@ -81,7 +81,7 @@ def test_the_next_step_never_depends_on_the_dealer_lookup():
 def test_with_no_dealer_source_configured_it_is_a_readable_503():
     client = TestClient(create_app(store=InMemoryStore(PROFILES)), raise_server_exceptions=False)
     r = client.get("/api/customers/cust_01/dealers")
-    assert r.status_code == 503 and "couldn't be loaded" in r.json()["detail"]
+    assert r.status_code == 503 and "couldn't load nearby dealers" in r.json()["detail"]
 
 
 def test_an_empty_search_is_a_valid_empty_list():

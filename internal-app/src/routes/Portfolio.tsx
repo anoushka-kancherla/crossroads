@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis
 import { roleColor } from "../brand/chartColors";
 import { StatusMessage } from "../brand/StatusMessage";
 import { UnauthorizedError, api, type Portfolio as PortfolioData } from "../api/client";
+import { LivePanel } from "../components/LivePanel";
 import { QueryState } from "../components/QueryState";
 import { count, dateLabel, money } from "../format";
 
@@ -40,12 +41,13 @@ export default function Portfolio() {
           </StatusMessage>
         )}
       </div>
+      <LivePanel />
       <QueryState
         status={portfolio.status}
         error={portfolio.error}
         data={portfolio.data}
         isEmpty={(d) => d.empty}
-        emptyMessage="No recommendations have been computed yet. Use Refresh to compute them."
+        emptyMessage="No recommendations yet. Press Refresh to work them out."
       >
         {(data) => <Dashboard data={data} />}
       </QueryState>

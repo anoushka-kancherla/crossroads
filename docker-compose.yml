@@ -59,6 +59,7 @@ services:
       context: ./customer-app
       args:
         LOGO_URL: ${CUSTOMER_LOGO_URL:-}
+        STAFF_URL: ${STAFF_URL:-}
     ports:
       - "8080:80"
     networks: [customer-net]

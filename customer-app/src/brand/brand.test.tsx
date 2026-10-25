@@ -18,20 +18,25 @@ describe("LogoSlot", () => {
     expect(screen.getByText("Your logo")).toBeInTheDocument();
   });
 
-  it("keeps the same box (same classes) whether or not a logo is set", () => {
+  it("keeps the same height and place whether or not a logo is set", () => {
     const { container: empty } = render(<LogoSlot size="card" />);
     vi.stubEnv("VITE_LOGO_URL", "/logo.png");
     const { container: set } = render(<LogoSlot size="card" />);
-    expect(empty.firstElementChild?.className).toBe(set.firstElementChild?.className);
+    // same shape and place; with a logo the slot is as wide as the logo at the same height, so no gap beside it
     expect(empty.firstElementChild?.className).toContain("logo-card");
-    expect(set.querySelector("img")).toHaveAttribute("src", "/logo.png");
+    expect(set.firstElementChild?.className).toContain("logo-card");
+    expect(set.firstElementChild?.className).toContain("has-logo");
+    expect(empty.firstElementChild?.className).not.toContain("has-logo");
+    expect(set.querySelector(".logo-probe")).toHaveAttribute("src", "/logo.png");
+    expect((set.querySelector(".logo-mask") as HTMLElement).style.getPropertyValue("--logo-url")).toBe('url("/logo.png")');
   });
 
   it("falls back to the placeholder when the image fails to load", () => {
     vi.stubEnv("VITE_LOGO_URL", "/missing.png");
     const { container } = render(<LogoSlot />);
-    fireEvent.error(container.querySelector("img")!);
-    expect(container.querySelector("img")).toBeNull();
+    fireEvent.error(container.querySelector(".logo-probe")!);
+    expect(container.querySelector(".logo-probe")).toBeNull();
+    expect(container.querySelector(".logo-mask")).toBeNull();
     expect(screen.getByText("Your logo")).toBeInTheDocument();
   });
 });

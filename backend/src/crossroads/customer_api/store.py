@@ -63,6 +63,17 @@ class CustomerRecord:
     synced_at: datetime | None = None  # when the bank figures were last read back from Nessie
 
 
+@dataclass(frozen=True)
+class Acceptance:
+    """One logged acceptance: the path a customer pressed, with that path's own engine figures."""
+
+    customer_id: str
+    path: str
+    retained: bool  # whether the path keeps the customer with Toyota
+    revenue: Decimal  # the engine's 5-year interest income for that path
+    ts: datetime
+
+
 class NotConnected(Exception):
     """The customer is demo data with no bank behind it, so there is nothing to sync."""
 
@@ -76,6 +87,9 @@ class CustomerStore(Protocol):
     def sync_from_nessie(self, customer_id: str, nessie: NessieClient) -> CustomerRecord | None: ...
     def dealer_candidates(self, zip_code: str) -> list[Dealer] | None: ...
     def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None: ...
+    def record_acceptance(self, entry: Acceptance) -> None: ...
+    def latest_acceptances(self) -> list[Acceptance]: ...
+    def acceptance_count(self) -> int: ...
 
 
 _RECORD_SQL = """
@@ -93,6 +107,26 @@ WHERE c.id = %s
 class DbStore:
     def __init__(self, pool: ConnectionPool):
         self._pool = pool
+
+    def record_acceptance(self, entry: Acceptance) -> None:
+        with self._pool.connection() as conn:
+            conn.execute(
+                "INSERT INTO acceptances (ts, customer_id, path, retained, revenue) VALUES (%s, %s, %s, %s, %s)",
+                (entry.ts, entry.customer_id, entry.path, entry.retained, entry.revenue),
+            )
+
+    def latest_acceptances(self) -> list[Acceptance]:
+        """Each customer's latest acceptance, picked by Tiger Data's own last() aggregate."""
+        with self._pool.connection() as conn:
+            rows = conn.execute(
+                """SELECT customer_id, last(path, ts), last(retained, ts), last(revenue, ts), max(ts)
+                   FROM acceptances GROUP BY customer_id ORDER BY customer_id"""
+            ).fetchall()
+        return [Acceptance(cid, path, retained, revenue, ts) for cid, path, retained, revenue, ts in rows]
+
+    def acceptance_count(self) -> int:
+        with self._pool.connection() as conn:
+            return conn.execute("SELECT count(*) FROM acceptances").fetchone()[0]
 
     def list_customers(self) -> list[CustomerListEntry]:
         with self._pool.connection() as conn:
