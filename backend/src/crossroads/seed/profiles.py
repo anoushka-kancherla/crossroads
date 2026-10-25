@@ -151,6 +151,33 @@ def synthetic_quote(p: Profile) -> ListingQuote | None:
     )
 
 
+def _months_after(start: date, n: int) -> date:
+    month = start.month - 1 + n
+    return date(start.year + month // 12, month % 12 + 1, min(start.day, 28))
+
+
+def payment_history(p: Profile) -> list[tuple[date, D, D, D]]:
+    """One row per payment already made: (date, amount, principal, interest). A loan's split follows its
+    amortization from the original principal (backed out of the payment, term and APR); a lease's
+    "interest" is its rent charge, which stays level (the same Toyota income the business view counts)."""
+    c = p.contract
+    made = c.term_months - c.months_left
+    rows: list[tuple[date, D, D, D]] = []
+    if c.type == "lease":
+        rent = cents((c.cap_cost + c.residual) * c.money_factor)
+        for i in range(made):
+            rows.append((_months_after(p.start_date, i), c.monthly_payment, c.monthly_payment - rent, rent))
+        return rows
+    r = c.apr / D(1200)
+    bal = c.monthly_payment * c.term_months if r == 0 else c.monthly_payment * (1 - (1 + r) ** -c.term_months) / r
+    for i in range(made):
+        interest = cents(bal * r)
+        principal = c.monthly_payment - interest
+        bal -= principal
+        rows.append((_months_after(p.start_date, i), c.monthly_payment, principal, interest))
+    return rows
+
+
 def _split(total: int, parts: list[tuple[str, str]], rest: str) -> list[tuple[str, D]]:
     out = [(name, (D(total) * D(p)).quantize(D(1))) for name, p in parts]
     out.append((rest, D(total) - sum(a for _, a in out)))

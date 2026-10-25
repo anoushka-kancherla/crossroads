@@ -111,3 +111,30 @@ def test_the_real_customers_reconcile_with_their_individual_results():
     saved = [by["keep_as_is"].five_year_cost - chosen.five_year_cost for _, _, by, chosen in rows if chosen]
     assert p.avg_savings == (sum(saved, D(0)) / len(saved)).quantize(D(1), "ROUND_HALF_UP")
     assert all(s >= 0 for s in saved), "the recommended path is never costlier than keeping the current plan"
+
+
+def test_each_path_row_names_its_next_step_type():
+    rows = {r.path: r for r in summarize([]).by_path}
+    extra = rows["extra_principal"]
+    assert (extra.next_step, extra.next_step_label) == ("self_service", "Self-service")
+    assert rows["buy_out"].next_step == "eligible_offer"
+    assert rows["walk_away"].next_step == "specialist_follow_up"
+
+
+def test_the_next_step_mix_counts_customers_and_reports_the_self_service_share():
+    rs = [result("a", "extra_principal", 5000), result("b", "extra_principal", 5000), result("c", "buy_out", 5000),
+          result("d", "trade_in_early", 5000), result("e", None, None, retained=False)]
+    p = summarize(rs)
+    assert [(m.step, m.customers) for m in p.next_steps] == [
+        ("self_service", 2), ("eligible_offer", 1), ("specialist_follow_up", 1)
+    ]
+    assert sum(m.customers for m in p.next_steps) + p.no_recommendation == p.customers_total
+    assert p.self_service_pct == 40  # 2 of the 5 customers can finish without a specialist
+
+
+def test_an_empty_portfolio_has_a_zero_mix_in_the_fixed_order():
+    p = summarize([])
+    assert [(m.step, m.customers) for m in p.next_steps] == [
+        ("self_service", 0), ("eligible_offer", 0), ("specialist_follow_up", 0)
+    ]
+    assert p.self_service_pct == 0

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -13,6 +14,8 @@ from ..adapters.dealers import Dealer
 
 SCHEMA = Path(__file__).with_name("schema.sql")
 CONTINUOUS_AGGREGATES = ("monthly_miles", "monthly_payments", "monthly_spend")
+HYPERTABLES = ("odometer_readings", "payments", "transactions")
+COMPRESS_AFTER = "30 days"  # must match the policy in schema.sql
 # Months are bucketed in UTC, so every session must run in UTC whatever the server default is.
 _SESSION = "-c timezone=UTC"
 
@@ -51,6 +54,49 @@ def refresh_aggregates(conn: psycopg.Connection) -> None:
         raise ValueError("refresh_aggregates needs an autocommit connection")
     for name in CONTINUOUS_AGGREGATES:
         conn.execute(f"CALL refresh_continuous_aggregate('{name}', NULL, NULL)")
+
+
+@dataclass(frozen=True)
+class CompressionStat:
+    table: str
+    chunks_compressed: int
+    chunks_total: int
+    bytes_before: int
+    bytes_after: int
+
+    @property
+    def ratio(self) -> float:
+        return self.bytes_before / self.bytes_after if self.bytes_after else 0.0
+
+
+def compress_old_chunks(conn: psycopg.Connection) -> int:
+    """Compress every chunk older than the policy age now, instead of waiting for the background job.
+    Returns how many chunks were compressed. Needs an autocommit connection."""
+    if not conn.autocommit:
+        raise ValueError("compress_old_chunks needs an autocommit connection")
+    done = 0
+    for table in HYPERTABLES:
+        for (chunk,) in conn.execute(
+            "SELECT show_chunks(%s::regclass, older_than => %s::interval)", (table, COMPRESS_AFTER)
+        ).fetchall():
+            if conn.execute("SELECT compress_chunk(%s::regclass, if_not_compressed => true)", (chunk,)).fetchone()[0]:
+                done += 1
+    return done
+
+
+def compression_stats(conn: psycopg.Connection) -> list[CompressionStat]:
+    """Per hypertable: chunks compressed, and size before and after (the 'Tiger Data compression' figure)."""
+    out = []
+    for table in HYPERTABLES:
+        total = conn.execute("SELECT count(*) FROM show_chunks(%s::regclass)", (table,)).fetchone()[0]
+        row = conn.execute(
+            "SELECT coalesce(total_chunks, 0), coalesce(number_compressed_chunks, 0), "
+            "coalesce(before_compression_total_bytes, 0), coalesce(after_compression_total_bytes, 0) "
+            "FROM hypertable_compression_stats(%s::regclass)",
+            (table,),
+        ).fetchone() or (0, 0, 0, 0)  # no row at all when nothing is compressed yet
+        out.append(CompressionStat(table, int(row[1]), int(total), int(row[2]), int(row[3])))
+    return out
 
 
 def dealer_candidates(conn: psycopg.Connection, zip_code: str) -> list[Dealer] | None:

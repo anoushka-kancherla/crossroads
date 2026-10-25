@@ -104,6 +104,18 @@ def test_the_primary_next_step_confirms_the_chosen_path():
     assert r.json()["confirmation"].startswith("You chose Buy out.") and "specialist" in r.json()["confirmation"]
 
 
+def test_the_next_step_names_its_type_so_the_customer_knows_what_to_expect():
+    client, _ = make()
+    kinds = {}
+    for path in ("buy_out", "walk_away"):  # cust_01 has a lease
+        r = client.post("/api/customers/cust_01/next-step", json={"path": path, "kind": "primary"})
+        kinds[path] = (r.json().get("step_type"), r.json().get("step_label"))
+    assert kinds["buy_out"] == ("eligible_offer", "Eligible offer")
+    assert kinds["walk_away"] == ("specialist_follow_up", "Specialist follow-up")
+    r = client.post("/api/customers/cust_07/next-step", json={"path": "extra_principal", "kind": "primary"})
+    assert (r.json()["step_type"], r.json()["step_label"]) == ("self_service", "Self-service")
+
+
 def test_talk_to_a_specialist_is_its_own_confirmation():
     client, _ = make()
     r = client.post("/api/customers/cust_01/next-step", json={"path": "buy_out", "kind": "specialist"})

@@ -27,11 +27,11 @@ const lease: Overview = {
   },
   money: {
     checking: "3100.00", savings: "1800.00", monthly_income: "5200.00", monthly_bills: "2650.00",
-    room_for_payment: "2250.00",
+    room_for_payment: "2250.00", source: "nessie", source_label: "Balances, income and bills from Capital One Nessie (sandbox)",
   },
   market_value: {
     low: "21244.00", median: "22600.00", high: "23956.00", n_listings: 8, updated_at: "2026-10-24T12:00:00Z",
-    basis: "listings", basis_label: "From 8 local listings",
+    basis: "listings", basis_label: "From 8 local listings", source: "serpapi", source_label: "Google results via SerpApi",
   },
 };
 
@@ -136,8 +136,9 @@ describe("Customer overview", () => {
     expect(screen.getByText("-$4,296")).toBeInTheDocument();
     expect(screen.getByText("Allowance 36,000")).toBeInTheDocument();
     expect(screen.getByText("$21,244 to $23,956")).toBeInTheDocument();
-    expect(screen.getByText(/From 8 local listings/)).toBeInTheDocument();
+    expect(screen.getByText(/From 8 local listings.*· Google results via SerpApi/)).toBeInTheDocument();
     expect(screen.getByText("$2,250")).toBeInTheDocument();
+    expect(screen.getByText("Balances, income and bills from Capital One Nessie (sandbox)")).toBeInTheDocument();
     expect(screen.getByText(/12,000 miles over allowance at lease end, about \$3,000 in fees/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "See my options" })).toHaveAttribute("href", "/paths");
   });
@@ -191,6 +192,7 @@ describe("Customer overview", () => {
       market_value: {
         low: null, median: "16696.06", high: null, n_listings: 0, updated_at: null, basis: "original_price",
         basis_label: "Estimated from the original price with an illustrative 12% yearly depreciation; no local listings found",
+        source: "demo", source_label: "Demo data",
       },
     };
     stubFetch((url) => (url.endsWith("/overview") ? { body: none } : happy(url)));

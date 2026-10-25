@@ -57,13 +57,21 @@ class GeminiClient:
     def draft(self, prompt: str) -> ExplanationDraft:
         from google.genai import types
 
-        response = self._client.models.generate_content(
-            model=self._model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json", response_schema=ExplanationDraft
-            ),
-        )
+        def ask(**extra):
+            return self._client.models.generate_content(
+                model=self._model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json", response_schema=ExplanationDraft, **extra
+                ),
+            )
+
+        # The text is short and the engine has done the thinking, so minimal thinking cut the live
+        # latency by more than half. A model that does not take the setting is asked again without it.
+        try:
+            response = ask(thinking_config=types.ThinkingConfig(thinking_level="minimal"))
+        except Exception:  # noqa: BLE001 - the SDK's error types differ by version
+            response = ask()
         parsed = getattr(response, "parsed", None)
         if isinstance(parsed, ExplanationDraft):
             return parsed

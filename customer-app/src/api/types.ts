@@ -264,6 +264,13 @@ export interface components {
             basis: "listings" | "original_price";
             /** Basis Label */
             basis_label: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "serpapi" | "demo";
+            /** Source Label */
+            source_label: string;
         };
         /** Mileage */
         Mileage: {
@@ -294,6 +301,13 @@ export interface components {
             monthly_bills: string;
             /** Room For Payment */
             room_for_payment: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "nessie" | "demo";
+            /** Source Label */
+            source_label: string;
         };
         /** NextStepRequest */
         NextStepRequest: {
@@ -314,6 +328,13 @@ export interface components {
             path_label: string;
             /** Confirmation */
             confirmation: string;
+            /**
+             * Step Type
+             * @enum {string}
+             */
+            step_type: "self_service" | "eligible_offer" | "specialist_follow_up";
+            /** Step Label */
+            step_label: string;
         };
         /** OptionOut */
         OptionOut: {

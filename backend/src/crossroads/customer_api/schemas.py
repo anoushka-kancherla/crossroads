@@ -64,6 +64,8 @@ class Money(BaseModel):
     monthly_income: Decimal
     monthly_bills: Decimal
     room_for_payment: Decimal
+    source: Literal["nessie", "demo"]  # where the balances, income and bills were read from
+    source_label: str
 
 
 class MarketValue(BaseModel):
@@ -74,6 +76,8 @@ class MarketValue(BaseModel):
     updated_at: datetime | None
     basis: Literal["listings", "original_price"]
     basis_label: str
+    source: Literal["serpapi", "demo"]  # where the listing prices came from
+    source_label: str
 
 
 class OverviewResponse(BaseModel):
@@ -200,3 +204,5 @@ class NextStepRequest(BaseModel):
 class NextStepResponse(BaseModel):
     path_label: str
     confirmation: str
+    step_type: Literal["self_service", "eligible_offer", "specialist_follow_up"]
+    step_label: str

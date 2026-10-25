@@ -14,8 +14,12 @@ from typing import Protocol
 
 import httpx
 
-BASE_URL = "http://api.nessieisreal.com"
+BASE_URL = "https://api.nessieisreal.com"  # plain http refuses the connection (found against the live API)
 _KINDS = ("checking", "savings")
+
+
+class NessieError(Exception):
+    """A Nessie request failed. The message never carries a URL or key."""
 
 
 @dataclass(frozen=True)
@@ -92,19 +96,40 @@ class HttpNessie:
         self._http = http or httpx.Client(timeout=15)
         self._merchant: str | None = None
 
+    def _send(self, method: str, path: str, **kwargs):
+        """One request. Every failure becomes a NessieError with the status and path only: an httpx
+        error message holds the full URL, API key included, so it is never chained or shown."""
+        try:
+            r = self._http.request(method, f"{self._base}{path}", params={"key": self._key}, **kwargs)
+            r.raise_for_status()
+            return r.json()
+        except httpx.HTTPStatusError as e:
+            raise NessieError(f"Nessie answered {e.response.status_code} for {method} {path}") from None
+        except (httpx.HTTPError, ValueError):
+            raise NessieError(f"Nessie could not be reached or answered badly for {method} {path}") from None
+
     def _get(self, path: str):
-        r = self._http.get(f"{self._base}{path}", params={"key": self._key})
-        r.raise_for_status()
-        return r.json()
+        return self._send("GET", path)
 
     def _post(self, path: str, body: dict) -> str:
-        r = self._http.post(f"{self._base}{path}", params={"key": self._key}, json=body)
-        r.raise_for_status()
-        return r.json()["objectCreated"]["_id"]
+        try:
+            return self._send("POST", path, json=body)["objectCreated"]["_id"]
+        except (KeyError, TypeError):
+            raise NessieError(f"Nessie's answer to POST {path} had no created object") from None
 
     def _merchant_id(self) -> str:
         if self._merchant is None:
-            self._merchant = self._get("/merchants")[0]["_id"]
+            existing = self._get("/merchants")
+            if existing:
+                self._merchant = existing[0]["_id"]
+            else:  # a fresh sandbox can have none, so create one to attach purchases to
+                self._merchant = self._post(
+                    "/merchants",
+                    {"name": "Crossroads demo merchant", "category": "demo",
+                     "address": {"street_number": "100", "street_name": "Main St", "city": "Anytown",
+                                 "state": "TX", "zip": "75024"},
+                     "geocode": {"lat": 33.0, "lng": -96.8}},
+                )
         return self._merchant
 
     def create_customer(self, first_name: str, last_name: str, zip_code: str) -> str:
@@ -123,12 +148,12 @@ class HttpNessie:
         return self._post(f"/accounts/{account_id}/bills", body)
 
     def create_deposit(self, account_id: str, on: date, amount: Decimal, description: str) -> str:
-        body = {"medium": "balance", "transaction_date": on.isoformat(),
+        body = {"medium": "balance", "transaction_date": on.isoformat(), "status": "completed",
                 "amount": float(amount), "description": description}
         return self._post(f"/accounts/{account_id}/deposits", body)
 
     def create_purchase(self, account_id: str, on: date, amount: Decimal, description: str) -> str:
-        body = {"merchant_id": self._merchant_id(), "medium": "balance",
+        body = {"merchant_id": self._merchant_id(), "medium": "balance", "status": "completed",
                 "purchase_date": on.isoformat(), "amount": float(amount), "description": description}
         return self._post(f"/accounts/{account_id}/purchases", body)
 

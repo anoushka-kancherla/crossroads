@@ -56,6 +56,8 @@ class CustomerRecord:
     bills_total: Decimal  # monthly
     quote: ListingQuote | None
     quote_updated_at: datetime | None
+    data_source: str = "demo"  # "nessie" when the accounts were read back from Capital One Nessie
+    quote_source: str = "demo"  # "serpapi" when the market value came from real listings via SerpApi
 
 
 class CustomerStore(Protocol):
@@ -102,7 +104,11 @@ class DbStore:
             (cid, name, first, zip_code, lat, lng, year, make, model, trim, vclass, price, odometer,
              kind, end_date, term, months_left, payment, apr, balance, mf, cap, residual, allowance,
              fee) = row
-            accounts = dict(conn.execute("SELECT kind, balance FROM accounts WHERE customer_id = %s", (cid,)))
+            account_rows = conn.execute(
+                "SELECT kind, balance, source FROM accounts WHERE customer_id = %s", (cid,)
+            ).fetchall()
+            accounts = {kind: balance for kind, balance, _ in account_rows}
+            data_source = "nessie" if account_rows and all(s == "nessie" for *_, s in account_rows) else "demo"
             income = conn.execute(
                 "SELECT monthly_amount FROM income WHERE customer_id = %s ORDER BY deposited_on DESC LIMIT 1", (cid,)
             ).fetchone()
@@ -110,7 +116,7 @@ class DbStore:
                 "SELECT coalesce(sum(monthly_amount), 0) FROM bills WHERE customer_id = %s", (cid,)
             ).fetchone()[0]
             quote_row = conn.execute(
-                """SELECT low, median, high, n_listings, fetched_at FROM listing_cache
+                """SELECT low, median, high, n_listings, fetched_at, source FROM listing_cache
                    WHERE make = %s AND model = %s AND year = %s AND zip = %s""",
                 (make, model, year, zip_code),
             ).fetchone()
@@ -128,6 +134,8 @@ class DbStore:
             income=income[0] if income else Decimal(0), bills_total=bills,
             quote=ListingQuote(*quote_row[:4]) if quote_row else None,
             quote_updated_at=quote_row[4] if quote_row else None,
+            data_source=data_source,
+            quote_source=quote_row[5] if quote_row else "demo",
         )
 
     def monthly_miles(self, customer_id: str) -> list[tuple[date, int]]:

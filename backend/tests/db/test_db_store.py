@@ -137,3 +137,19 @@ def test_the_seed_pre_warms_each_zip_once_and_a_failed_zip_does_not_stop_the_res
     cached = {r[0] for r in conn.execute("SELECT DISTINCT zip FROM dealer_cache")}
     assert cached == zips - {"75024"}
     conn.close()
+
+
+def test_the_money_source_is_demo_for_the_fake_and_nessie_only_when_every_account_says_so(db_url, stores):
+    db, _ = stores
+    assert db.get_record("cust_01").data_source == "demo"  # seeded from the in-memory fake
+    conn = connect(db_url, autocommit=True)
+    try:
+        conn.execute("UPDATE accounts SET source = 'nessie' WHERE customer_id = 'cust_01' AND kind = 'checking'")
+        assert db.get_record("cust_01").data_source == "demo", "one account from Nessie is not enough to claim it"
+        conn.execute("UPDATE accounts SET source = 'nessie' WHERE customer_id = 'cust_01'")
+        assert db.get_record("cust_01").data_source == "nessie"
+        overview = build_overview(db.get_record("cust_01"), db.monthly_miles("cust_01"), CFG)
+        assert overview.money.source_label.endswith("Capital One Nessie (sandbox)")
+    finally:
+        conn.execute("UPDATE accounts SET source = 'demo' WHERE customer_id = 'cust_01'")
+        conn.close()

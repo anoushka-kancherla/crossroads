@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 from .money import ZERO, whole
+from .next_steps import NEXT_STEP_LABELS, NEXT_STEP_ORDER, NextStepType, next_step_of
 from .schemas import PATH_LABELS, PATH_ORDER, PathId
 
 
@@ -35,6 +36,18 @@ class PathRow:
     stays_with_toyota: bool
     stays_label: str
     revenue: Decimal
+    next_step: NextStepType
+    next_step_label: str
+
+
+@dataclass(frozen=True)
+class StepRow:
+    """How many customers' recommendations lead to one kind of next step."""
+
+    step: NextStepType
+    label: str
+    customers: int
+    share_pct: Decimal
 
 
 @dataclass(frozen=True)
@@ -47,6 +60,8 @@ class Portfolio:
     explanations_verified_pct: Decimal
     no_recommendation: int
     by_path: list[PathRow]
+    next_steps: list[StepRow]
+    self_service_pct: Decimal  # of all customers, whose recommendation needs no specialist or offer
 
 
 def pct(part: int, total: int) -> Decimal:
@@ -82,8 +97,20 @@ def summarize(results: list[CustomerResult]) -> Portfolio:
                 stays_with_toyota=stays,
                 stays_label=label,
                 revenue=sum((r.revenue for r in chosen if r.retained), ZERO),
+                next_step=next_step_of(path),
+                next_step_label=NEXT_STEP_LABELS[next_step_of(path)],
             )
         )
+
+    steps = [
+        StepRow(
+            step=step,
+            label=NEXT_STEP_LABELS[step],
+            customers=(n := sum(1 for r in with_path if next_step_of(r.path) == step)),
+            share_pct=pct(n, total),
+        )
+        for step in NEXT_STEP_ORDER
+    ]
 
     savings = [r.baseline_cost - r.five_year_cost for r in with_path]
     return Portfolio(
@@ -95,4 +122,6 @@ def summarize(results: list[CustomerResult]) -> Portfolio:
         explanations_verified_pct=pct(sum(1 for r in results if r.explanation_verified), total),
         no_recommendation=total - len(with_path),
         by_path=rows,
+        next_steps=steps,
+        self_service_pct=steps[0].share_pct,
     )

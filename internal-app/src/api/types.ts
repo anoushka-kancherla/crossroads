@@ -157,6 +157,13 @@ export interface components {
             stays_label: string;
             /** Revenue */
             revenue: string;
+            /**
+             * Next Step
+             * @enum {string}
+             */
+            next_step: "self_service" | "eligible_offer" | "specialist_follow_up";
+            /** Next Step Label */
+            next_step_label: string;
         };
         /** PortfolioResponse */
         PortfolioResponse: {
@@ -171,6 +178,10 @@ export interface components {
             kpis: components["schemas"]["KpisOut"];
             /** By Path */
             by_path: components["schemas"]["PathRowOut"][];
+            /** Next Steps */
+            next_steps: components["schemas"]["StepRowOut"][];
+            /** Self Service Pct */
+            self_service_pct: string;
             /** Assumptions */
             assumptions: string[];
         };
@@ -178,6 +189,20 @@ export interface components {
         SessionOut: {
             /** User */
             user: string;
+        };
+        /** StepRowOut */
+        StepRowOut: {
+            /**
+             * Step
+             * @enum {string}
+             */
+            step: "self_service" | "eligible_offer" | "specialist_follow_up";
+            /** Label */
+            label: string;
+            /** Customers */
+            customers: number;
+            /** Share Pct */
+            share_pct: string;
         };
         /** ValidationError */
         ValidationError: {

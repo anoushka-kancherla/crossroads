@@ -27,6 +27,13 @@ from .store import CustomerRecord
 
 _ONE = Decimal(1)
 
+# Shown on the money panel (FR-004). "nessie" is claimed only for data read back from the real API.
+QUOTE_SOURCE_LABELS = {"serpapi": "Google results via SerpApi", "demo": "Demo data"}
+SOURCE_LABELS = {
+    "nessie": "Balances, income and bills from Capital One Nessie (sandbox)",
+    "demo": "Demo data: not connected to a bank",
+}
+
 
 def _month_key(d: date) -> str:
     return d.strftime("%Y-%m")
@@ -139,6 +146,8 @@ def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Conf
             monthly_income=cents(rec.income),
             monthly_bills=cents(rec.bills_total),
             room_for_payment=cents(max(ZERO, rec.income - rec.bills_total - cfg.buffer)),
+            source=rec.data_source,
+            source_label=SOURCE_LABELS[rec.data_source],
         ),
         market_value=MarketValue(
             low=rec.quote.low if rec.quote else None,
@@ -148,6 +157,8 @@ def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Conf
             updated_at=rec.quote_updated_at,
             basis=basis,
             basis_label=label,
+            source=rec.quote_source,
+            source_label=QUOTE_SOURCE_LABELS[rec.quote_source],
         ),
     )
 

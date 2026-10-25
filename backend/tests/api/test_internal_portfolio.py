@@ -144,3 +144,21 @@ def test_no_figure_in_the_portfolio_is_a_float_or_has_a_stray_decimal_point():
 @pytest.mark.parametrize("path", ["/api/customers", "/api/customers/cust_01/overview", "/api/customers/cust_01/paths"])
 def test_the_internal_api_has_no_customer_routes(path):
     assert signed_in().get(path).status_code == 404
+
+
+def test_the_portfolio_counts_next_steps_and_they_reconcile_with_the_customers():
+    data = signed_in().post(f"{URL}/portfolio/refresh").json()
+    mix = data["next_steps"]
+    assert [m["step"] for m in mix] == ["self_service", "eligible_offer", "specialist_follow_up"]
+    assert sum(m["customers"] for m in mix) + data["no_recommendation"] == data["customers_total"] == 12
+    assert data["self_service_pct"] == mix[0]["share_pct"]
+    rows = {r["path"]: r for r in data["by_path"]}
+    assert rows["extra_principal"]["next_step"] == "self_service"
+    assert rows["buy_out"]["next_step_label"] == "Eligible offer"
+    for step in mix:  # each step's count is exactly the paths mapped to it
+        assert step["customers"] == sum(r["customers"] for r in data["by_path"] if r["next_step"] == step["step"])
+
+
+def test_the_assumptions_say_the_next_step_rule_is_illustrative():
+    data = signed_in().post(f"{URL}/portfolio/refresh").json()
+    assert any("illustrative rule" in a for a in data["assumptions"])

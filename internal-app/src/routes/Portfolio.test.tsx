@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
-import type { Portfolio } from "../api/client";
+import { retryHint, type Portfolio } from "../api/client";
 
 const LABELS: [string, string, boolean][] = [
   ["keep_as_is", "Keep as is", true],
@@ -14,6 +14,15 @@ const LABELS: [string, string, boolean][] = [
   ["extra_principal", "Pay extra principal", true],
   ["walk_away", "Return and walk away", false],
 ];
+
+const STEP: Record<string, string> = {
+  keep_as_is: "self_service", extra_principal: "self_service", buy_out: "eligible_offer",
+  refinance: "eligible_offer", return_lease_new: "specialist_follow_up", trade_in_early: "specialist_follow_up",
+  walk_away: "specialist_follow_up",
+};
+const STEP_LABEL: Record<string, string> = {
+  self_service: "Self-service", eligible_offer: "Eligible offer", specialist_follow_up: "Specialist follow-up",
+};
 
 const portfolio: Portfolio = {
   empty: false,
@@ -34,14 +43,22 @@ const portfolio: Portfolio = {
     share_pct: "0",
     stays_with_toyota: stays,
     stays_label: path === "buy_out" ? "Yes (Toyota loan)" : stays ? "Yes" : "No",
+    next_step: STEP[path] as Portfolio["next_steps"][number]["step"],
+    next_step_label: STEP_LABEL[STEP[path]],
     revenue: path === "buy_out" ? "58211.40" : "0",
   })),
+  next_steps: [
+    { step: "self_service", label: "Self-service", customers: 5, share_pct: "42" },
+    { step: "eligible_offer", label: "Eligible offer", customers: 4, share_pct: "33" },
+    { step: "specialist_follow_up", label: "Specialist follow-up", customers: 2, share_pct: "17" },
+  ],
+  self_service_pct: "42",
   assumptions: ["A customer is retained when the recommended path keeps a Toyota contract.", "Values are illustrative."],
 };
 
 const empty: Portfolio = { ...portfolio, empty: true, customers_total: 0, computed_at: null };
 
-type Reply = { status?: number; body?: unknown } | Error | "never";
+type Reply = { status?: number; body?: unknown; headers?: Record<string, string> } | Error | "never";
 type Routes = Partial<Record<string, Reply | (() => Reply)>>;
 
 /** Stubs fetch; the key is "METHOD path". Every call is recorded so a test can say what was never requested. */
@@ -58,7 +75,8 @@ function stubFetch(routes: Routes) {
       if (reply === "never") return new Promise(() => {});
       if (reply instanceof Error) throw reply;
       const status = reply.status ?? 200;
-      return { ok: status < 400, status, json: async () => reply.body };
+      const headers = { get: (name: string) => reply.headers?.[name] ?? null };
+      return { ok: status < 400, status, headers, json: async () => reply.body };
     }),
   );
   return calls;
@@ -152,6 +170,18 @@ describe("portfolio dashboard", () => {
     expect(screen.getByText("Values are illustrative.")).toBeInTheDocument();
   });
 
+  it("shows how many recommendations need no specialist, and each path's next step", async () => {
+    stubFetch({ "GET /api/internal/session": signedIn, "GET /api/internal/portfolio": { body: portfolio } });
+    renderApp();
+    const tile = (await screen.findByText("Need no specialist")).parentElement as HTMLElement;
+    expect(tile).toHaveTextContent("42%");
+    expect(tile).toHaveTextContent("5 self-service · 4 eligible offer · 2 specialist follow-up");
+    const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1);
+    expect(within(rows[1]).getByText("Eligible offer")).toBeInTheDocument();
+    expect(within(rows[5]).getByText("Self-service")).toBeInTheDocument();
+    expect(within(rows[6]).getByText("Specialist follow-up")).toBeInTheDocument();
+  });
+
   it("returns to sign-in with no figures left when the session ends mid-use", async () => {
     stubFetch({ "GET /api/internal/session": signedIn, "GET /api/internal/portfolio": unauthorized });
     renderApp();
@@ -236,12 +266,26 @@ describe("staff sign-in", () => {
   it("says so, in plain words, when too many attempts have locked the address", async () => {
     stubFetch({
       "GET /api/internal/session": unauthorized,
-      "POST /api/internal/login": { status: 429, body: { detail: "Too many attempts. Please try again later." } },
+      "POST /api/internal/login": {
+        status: 429,
+        body: { detail: "Too many attempts. Please try again later." },
+        headers: { "Retry-After": "900" },
+      },
     });
     renderApp();
     await screen.findByRole("form", { name: "Staff sign-in" });
     signIn("staff", "x");
-    expect(await screen.findByRole("alert")).toHaveTextContent("Too many attempts. Please try again later.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Too many attempts. Please try again later. Try again in 15 minutes.",
+    );
+  });
+
+  it("counts the delay down to seconds, and copes with a missing Retry-After", () => {
+    expect(retryHint("45")).toBe("Try again in 45 seconds.");
+    expect(retryHint("60")).toBe("Try again in 1 minute.");
+    expect(retryHint("61")).toBe("Try again in 2 minutes.");
+    expect(retryHint(null)).toBe("");
+    expect(retryHint("soon")).toBe("");
   });
 
   it("says when sign-in is not set up", async () => {

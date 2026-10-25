@@ -62,6 +62,11 @@ function Dashboard({ data }: { data: PortfolioData }) {
           sub="Versus doing nothing"
         />
         <Tile label="Explanations verified" value={`${k.explanations_verified_pct}%`} sub="Passed the number check" />
+        <Tile
+          label="Need no specialist"
+          value={`${data.self_service_pct}%`}
+          sub={data.next_steps.map((s) => `${count(s.customers)} ${s.label.toLowerCase()}`).join(" · ")}
+        />
       </div>
       <div className="columns">
         <section className="panel" aria-label="Recommended path mix">
@@ -86,6 +91,7 @@ function Dashboard({ data }: { data: PortfolioData }) {
                 <th>Path</th>
                 <th className="num">Customers</th>
                 <th>Stays with Toyota</th>
+                <th>Next step</th>
                 <th className="num">Est. revenue</th>
               </tr>
             </thead>
@@ -95,6 +101,7 @@ function Dashboard({ data }: { data: PortfolioData }) {
                   <td>{row.label}</td>
                   <td className="num">{count(row.customers)}</td>
                   <td>{row.stays_label}</td>
+                  <td>{row.next_step_label}</td>
                   <td className="num">{money(row.revenue)}</td>
                 </tr>
               ))}

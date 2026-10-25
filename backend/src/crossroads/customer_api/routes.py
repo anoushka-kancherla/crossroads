@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..adapters.dealers import DealersClient
 from ..config import Config
+from ..engine.next_steps import NEXT_STEP_LABELS, next_step_of
 from ..engine.schemas import LEASE_PATHS, LOAN_PATHS, PATH_LABELS
 from ..explain.service import ExplainService
 from .dealers_service import nearby_dealers
@@ -122,7 +123,13 @@ def next_step(customer_id: str, body: NextStepRequest, store: CustomerStore = De
     allowed = LEASE_PATHS if rec.contract.type == "lease" else LOAN_PATHS
     if body.path not in allowed:
         raise HTTPException(status_code=422, detail="That is not one of your options.")
-    return NextStepResponse(path_label=PATH_LABELS[body.path], confirmation=confirmation_text(body.path, body.kind))
+    step = next_step_of(body.path)
+    return NextStepResponse(
+        path_label=PATH_LABELS[body.path],
+        confirmation=confirmation_text(body.path, body.kind),
+        step_type=step,
+        step_label=NEXT_STEP_LABELS[step],
+    )
 
 
 @router.post("/customers/{customer_id}/explanation", response_model=ExplanationOut)

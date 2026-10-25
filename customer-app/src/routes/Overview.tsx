@@ -100,7 +100,7 @@ function OverviewBody({
 
         <section className="panel" aria-labelledby="money-title">
           <h2 id="money-title">Your money picture</h2>
-          <p className="basis">From linked bank accounts</p>
+          <p className="basis">{bank.source_label}</p>
           <dl className="rows">
             <Row label="Checking balance" value={money(bank.checking)} />
             <Row label="Savings balance" value={money(bank.savings)} />
@@ -115,6 +115,7 @@ function OverviewBody({
           <p className="basis">
             {mv.basis_label}
             {mv.updated_at ? ` · updated ${dateLabel(mv.updated_at)}` : ""}
+            {mv.basis === "listings" ? ` · ${mv.source_label}` : ""}
           </p>
         </section>
       </div>

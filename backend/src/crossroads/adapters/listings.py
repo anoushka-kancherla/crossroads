@@ -44,6 +44,18 @@ def prices_from_results(payload: dict) -> list[Decimal]:
     return found
 
 
+def trim_outliers(prices: list[Decimal], lo: str = "0.7", hi: str = "1.3") -> list[Decimal]:
+    """Keep prices within 70% to 130% of the median. A web search for one car also finds other trims, other
+    years and add-on prices (live results ran from $12,990 to $53,970 for one Camry), and a median alone
+    would still leave a misleading high and low."""
+    if not prices:
+        return []
+    s = sorted(prices)
+    mid = len(s) // 2
+    median = s[mid] if len(s) % 2 else (s[mid - 1] + s[mid]) / 2
+    return [p for p in s if median * Decimal(lo) <= p <= median * Decimal(hi)]
+
+
 def quote_from_prices(prices: list[Decimal], min_n: int = 3) -> ListingQuote | None:
     if len(prices) < min_n:
         return None
@@ -72,7 +84,7 @@ class SerpApiListings:
         except (httpx.HTTPError, ValueError):
             # Not chained: an httpx error message includes the request URL, and so the API key.
             raise RuntimeError("The listings search could not be reached.") from None
-        return quote_from_prices(prices_from_results(payload))
+        return quote_from_prices(trim_outliers(prices_from_results(payload)))
 
 
 class FakeListings:

@@ -88,3 +88,28 @@ def test_the_template_and_flip_sentences_pass_the_number_check_for_everyone(seed
         assert e.verified and e.source == "template", s.profile.id
         for f in find_flips(s.inputs, CFG):
             assert template.flip_sentence(flip_facts(f, s.profile.contract.type)) is not None
+
+
+def test_every_customer_has_one_payment_row_per_payment_already_made():
+    from crossroads.seed.profiles import payment_history
+
+    for p in generate_profiles():
+        rows = payment_history(p)
+        made = p.contract.term_months - p.contract.months_left
+        assert len(rows) == made, p.id
+        dates = [r[0] for r in rows]
+        assert dates == sorted(dates) and len(set(dates)) == len(dates)
+        assert dates[0] >= p.start_date and dates[-1] <= p.end_date
+        for _, amount, principal, interest in rows:
+            assert amount == p.contract.monthly_payment and principal + interest == amount and interest >= 0
+
+
+def test_a_loans_interest_falls_over_time_and_a_leases_rent_charge_is_level():
+    from crossroads.seed.profiles import payment_history
+
+    for p in generate_profiles():
+        interest = [r[3] for r in payment_history(p)]
+        if p.contract.type == "loan" and p.contract.apr > 0 and len(interest) > 1:
+            assert interest[0] > interest[-1], p.id
+        if p.contract.type == "lease":
+            assert len(set(interest)) == 1, p.id

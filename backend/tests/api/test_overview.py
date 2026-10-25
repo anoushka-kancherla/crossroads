@@ -60,6 +60,12 @@ def test_the_money_picture(client):
     assert m["room_for_payment"] == "2250.00"  # income − bills − the $300 buffer
 
 
+def test_the_money_panel_says_where_the_figures_came_from(client):
+    """FR-004: the panel names its source, and only claims Nessie when the data really came from it."""
+    m = overview(client, "cust_01")["money"]
+    assert m["source"] == "demo" and m["source_label"] == "Demo data: not connected to a bank"
+
+
 def test_room_for_a_payment_is_never_negative(client):
     for cid in PROFILES:
         assert D(overview(client, cid)["money"]["room_for_payment"]) >= 0

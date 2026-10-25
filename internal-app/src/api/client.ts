@@ -26,6 +26,14 @@ async function detailOf(res: Response): Promise<string> {
   }
 }
 
+/** "Try again in 15 minutes." from the Retry-After seconds, or nothing when the header is missing. */
+export function retryHint(header: string | null | undefined): string {
+  const seconds = Number(header);
+  if (!header || !Number.isFinite(seconds) || seconds <= 0) return "";
+  const minutes = Math.ceil(seconds / 60);
+  return seconds < 60 ? `Try again in ${Math.ceil(seconds)} seconds.` : `Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
+}
+
 /** Every failure becomes an Error with a message staff can read: never a stack trace. */
 async function send(path: string, init?: RequestInit): Promise<Response> {
   let res: Response;
@@ -36,6 +44,7 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   }
   if (res.ok) return res;
   const detail = await detailOf(res);
+  if (res.status === 429) throw new Error(`${detail} ${retryHint(res.headers?.get("Retry-After"))}`.trim());
   // A 401 from sign-in itself is a wrong password, not an expired session.
   throw res.status === 401 && path !== LOGIN ? new UnauthorizedError() : new Error(detail);
 }

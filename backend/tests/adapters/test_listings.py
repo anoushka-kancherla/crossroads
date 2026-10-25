@@ -62,3 +62,23 @@ def test_the_fake_returns_what_it_was_given_and_none_otherwise():
     fake = FakeListings({("Toyota", "RAV4", 2023, "75024"): q})
     assert fake.lookup("Toyota", "RAV4", 2023, "75024") == q
     assert fake.lookup("Toyota", "Camry", 2023, "75024") is None
+
+
+def test_outliers_from_other_trims_and_years_are_trimmed_before_quoting():
+    """Found against live SerpApi results: one Camry search gave $12,990 to $53,970 around a ~$22,000 median."""
+    from crossroads.adapters.listings import trim_outliers
+
+    prices = [D(p) for p in (12990, 15999, 18305, 20495, 21125, 21807, 22345, 23100, 24500, 53970)]
+    kept = trim_outliers(prices)
+    assert D(53970) not in kept and D(12990) not in kept and len(kept) >= 6
+    assert trim_outliers([D(20000), D(21000), D(22000)]) == [D(20000), D(21000), D(22000)], "a tight set is kept whole"
+    assert trim_outliers([]) == []
+
+
+def test_the_serpapi_client_quotes_from_the_trimmed_prices():
+    noisy = {"organic_results": [{"title": f"Used car ${p:,}", "snippet": ""} for p in
+                                 (19000, 20000, 21000, 22000, 23000, 24000, 90000)]}
+    transport = httpx.MockTransport(lambda r: httpx.Response(200, json=noisy))
+    client = SerpApiListings("KEY", http=httpx.Client(transport=transport))
+    quote = client.lookup("Toyota", "Camry", 2021, "75024")
+    assert quote.high == D(24000) and quote.n == 6

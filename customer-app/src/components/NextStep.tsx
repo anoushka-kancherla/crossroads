@@ -51,6 +51,7 @@ export function NextStep({ customerId, path }: Props) {
         {step.isSuccess && (
           <>
             <p className="confirmation">{step.data.confirmation}</p>
+            <p className="basis">Next step type: {step.data.step_label}</p>
             <section aria-labelledby="dealers-title">
               <h3 id="dealers-title">Toyota dealers near you</h3>
               <QueryState

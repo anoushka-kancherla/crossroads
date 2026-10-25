@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS accounts (
   synced_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (customer_id, kind)
 );
+-- 'nessie' when read back from the real Capital One Nessie API, 'demo' when from the in-memory fake.
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'demo' CHECK (source IN ('nessie', 'demo'));
 
 CREATE TABLE IF NOT EXISTS bills (
   nessie_bill_id text PRIMARY KEY,
@@ -81,6 +83,8 @@ CREATE TABLE IF NOT EXISTS listing_cache (
   fetched_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (make, model, year, zip)
 );
+-- 'serpapi' for a quote read from real Google results through SerpApi, 'demo' for the synthetic stand-in.
+ALTER TABLE listing_cache ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'demo' CHECK (source IN ('serpapi', 'demo'));
 
 CREATE TABLE IF NOT EXISTS dealer_cache (
   zip text NOT NULL,
@@ -165,3 +169,19 @@ SELECT customer_id, time_bucket('1 month', ts) AS month, category, sum(amount) A
 FROM transactions
 GROUP BY customer_id, time_bucket('1 month', ts), category
 WITH NO DATA;
+
+-- Tiger Data compression: chunks older than 30 days are compressed in the background, one customer's
+-- readings together (segment by customer, order by time). The continuous aggregates above keep serving
+-- the trend charts, and the app reads compressed and uncompressed chunks the same way.
+ALTER TABLE odometer_readings SET (
+  timescaledb.compress, timescaledb.compress_segmentby = 'customer_id', timescaledb.compress_orderby = 'ts');
+ALTER TABLE payments SET (
+  timescaledb.compress, timescaledb.compress_segmentby = 'customer_id', timescaledb.compress_orderby = 'ts');
+ALTER TABLE transactions SET (
+  timescaledb.compress, timescaledb.compress_segmentby = 'customer_id', timescaledb.compress_orderby = 'ts');
+
+SELECT add_compression_policy('odometer_readings', INTERVAL '30 days', if_not_exists => TRUE);
+
+SELECT add_compression_policy('payments', INTERVAL '30 days', if_not_exists => TRUE);
+
+SELECT add_compression_policy('transactions', INTERVAL '30 days', if_not_exists => TRUE);

@@ -27,7 +27,7 @@ function stub(nextStep: Reply, dealerReply: Reply) {
 }
 
 const confirmed = (text = "You chose Buy out. A Toyota Financial Services specialist will contact you with the next steps.") => ({
-  body: { path_label: "Buy out", confirmation: text },
+  body: { path_label: "Buy out", confirmation: text, step_type: "eligible_offer", step_label: "Eligible offer" },
 });
 
 function renderStep(path: NextStepRequest["path"] | null = "buy_out") {
@@ -65,6 +65,7 @@ describe("NextStep", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start buyout" }));
     expect(await screen.findByText(/You chose Buy out/)).toBeInTheDocument();
     expect(sent(fn)).toEqual([{ path: "buy_out", kind: "primary" }]);
+    expect(screen.getByText("Next step type: Eligible offer")).toBeInTheDocument();
     expect(await screen.findByText("Toyota of Plano")).toBeInTheDocument();
     expect(screen.getByText("Open · Closes 9 PM · Rated 4.5 · 1.2 miles away")).toBeInTheDocument();
     expect(screen.getByText("14.5 miles away")).toBeInTheDocument(); // no hours or rating: nothing made up

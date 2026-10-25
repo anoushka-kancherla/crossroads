@@ -17,7 +17,7 @@ from ..engine.portfolio import CustomerResult, summarize
 from ..engine.recommend import evaluate
 from ..explain.facts import build_facts
 from ..explain.service import ExplainService
-from .schemas import KpisOut, PathRowOut, PortfolioResponse
+from .schemas import KpisOut, PathRowOut, PortfolioResponse, StepRowOut
 from .snapshots import SnapshotRow, SnapshotStore
 
 ASSUMPTIONS = [
@@ -28,6 +28,8 @@ ASSUMPTIONS = [
     "Average customer savings is the five-year cost of keeping the current plan minus the cost of the "
     "recommended path, for customers who have a recommendation.",
     "A customer with no affordable path counts as not retained and adds no revenue.",
+    "Next steps are sorted into self-service, eligible offer and specialist follow-up by an illustrative "
+    "rule per path, not Toyota policy; self-service means the recommendation needs no specialist or offer.",
     "Every figure comes from the demo customers' own recommendations, using illustrative values.",
 ]
 
@@ -78,5 +80,7 @@ def build_portfolio(rows: list[SnapshotRow]) -> PortfolioResponse:
             explanations_verified_pct=p.explanations_verified_pct,
         ),
         by_path=[PathRowOut(**vars(row)) for row in p.by_path],
+        next_steps=[StepRowOut(**vars(row)) for row in p.next_steps],
+        self_service_pct=p.self_service_pct,
         assumptions=ASSUMPTIONS,
     )

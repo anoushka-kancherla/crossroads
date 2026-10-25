@@ -14,11 +14,12 @@ from datetime import UTC, date, datetime, time
 import psycopg
 
 from ..adapters.dealers import DealerLookupError, DealersClient, SerpApiDealers
+from ..adapters.listings import ListingsClient, SerpApiListings
 from ..adapters.nessie import FakeNessie, HttpNessie, NessieClient
 from ..config import load_settings
 from ..db import repo
-from ..db.repo import apply_schema, connect, refresh_aggregates
-from .profiles import Profile, generate_profiles, synthetic_quote
+from ..db.repo import apply_schema, compress_old_chunks, compression_stats, connect, refresh_aggregates
+from .profiles import Profile, generate_profiles, payment_history, synthetic_quote
 
 
 def _ts(d: date) -> datetime:
@@ -70,14 +71,21 @@ def upsert_profile(conn: psycopg.Connection, p: Profile) -> None:
             "ON CONFLICT DO NOTHING",
             (_ts(on), p.id, odometer),
         )
+    for on, amount, principal, interest in payment_history(p):
+        conn.execute(
+            "INSERT INTO payments (ts, customer_id, amount, principal, interest) VALUES (%s, %s, %s, %s, %s) "
+            "ON CONFLICT DO NOTHING",
+            (_ts(on), p.id, amount, principal, interest),
+        )
     # Synthetic listing quotes stand in for real local listings (customers meant to have none get no row).
     quote = synthetic_quote(p)
     if quote is not None:
         conn.execute(
-            """INSERT INTO listing_cache (make, model, year, zip, low, median, high, n_listings)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """INSERT INTO listing_cache (make, model, year, zip, low, median, high, n_listings, source)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'demo')
                ON CONFLICT (make, model, year, zip) DO UPDATE SET low = EXCLUDED.low,
-                 median = EXCLUDED.median, high = EXCLUDED.high, n_listings = EXCLUDED.n_listings""",
+                 median = EXCLUDED.median, high = EXCLUDED.high, n_listings = EXCLUDED.n_listings
+               WHERE listing_cache.source = 'demo'  -- a real SerpApi quote is never replaced by demo data""",
             (v.make, v.model, v.year, p.zip, quote.low, quote.median, quote.high, quote.n),
         )
 
@@ -139,10 +147,12 @@ def ensure_in_nessie(conn: psycopg.Connection, nessie: NessieClient, p: Profile)
 
 def read_back(conn: psycopg.Connection, nessie: NessieClient, p: Profile, nessie_cid: str) -> None:
     """Make the tables mirror what Nessie returns."""
+    source = "nessie" if isinstance(nessie, HttpNessie) else "demo"
     for acct in nessie.get_accounts(nessie_cid):
         conn.execute(
-            "UPDATE accounts SET kind = %s, balance = %s, synced_at = now() WHERE nessie_account_id = %s",
-            (acct.kind, acct.balance, acct.id),
+            "UPDATE accounts SET kind = %s, balance = %s, source = %s, synced_at = now() "
+            "WHERE nessie_account_id = %s",
+            (acct.kind, acct.balance, source, acct.id),
         )
         if acct.kind != "checking":
             continue
@@ -184,16 +194,52 @@ def warm_dealer_cache(conn: psycopg.Connection, dealers: DealersClient, profiles
     return failed
 
 
+def warm_listing_cache(
+    conn: psycopg.Connection, listings: ListingsClient, profiles: list[Profile]
+) -> tuple[int, int]:
+    """Look up each distinct car once through SerpApi and cache the quote as 'serpapi'. A car with no
+    usable quote, or a failed search, keeps whatever is cached (the demo stand-in), so nothing breaks.
+    Returns (cars warmed, cars that fell back). A failure's message never carries the request URL."""
+    warmed = fell_back = 0
+    seen: set[tuple[str, str, int, str]] = set()
+    for p in profiles:
+        v = p.vehicle
+        key = (v.make, v.model, v.year, p.zip)
+        # A customer seeded with no listings on purpose (FR-005's depreciation fallback) stays that way.
+        if key in seen or p.listing_median is None:
+            continue
+        seen.add(key)
+        try:
+            quote = listings.lookup(*key)
+        except RuntimeError:
+            quote = None
+        if quote is None:
+            fell_back += 1
+            continue
+        conn.execute(
+            """INSERT INTO listing_cache (make, model, year, zip, low, median, high, n_listings, source)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'serpapi')
+               ON CONFLICT (make, model, year, zip) DO UPDATE SET low = EXCLUDED.low, median = EXCLUDED.median,
+                 high = EXCLUDED.high, n_listings = EXCLUDED.n_listings, source = 'serpapi', fetched_at = now()""",
+            (*key, quote.low, quote.median, quote.high, quote.n),
+        )
+        warmed += 1
+    return warmed, fell_back
+
+
 def seed(
     conn: psycopg.Connection,
     nessie: NessieClient,
     profiles: list[Profile],
     dealers: DealersClient | None = None,
+    listings: ListingsClient | None = None,
 ) -> list[str]:
     for p in profiles:
         upsert_profile(conn, p)
         nessie_cid = ensure_in_nessie(conn, nessie, p)
         read_back(conn, nessie, p, nessie_cid)
+    if listings is not None:
+        warm_listing_cache(conn, listings, profiles)
     return warm_dealer_cache(conn, dealers, profiles) if dealers is not None else []
 
 
@@ -222,8 +268,16 @@ def main() -> None:
     nessie: NessieClient = HttpNessie(settings.nessie_api_key) if settings.nessie_api_key else FakeNessie()
     profiles = generate_profiles()
     dealers = SerpApiDealers(settings.serpapi_api_key) if settings.serpapi_api_key else None
-    failed = seed(conn, nessie, profiles, dealers)
+    listings = SerpApiListings(settings.serpapi_api_key) if settings.serpapi_api_key else None
+    failed = seed(conn, nessie, profiles, dealers, listings)
+    real = conn.execute("SELECT count(*) FROM listing_cache WHERE source = 'serpapi'").fetchone()[0]
+    total = conn.execute("SELECT count(*) FROM listing_cache").fetchone()[0]
+    print(f"Market values: {real} of {total} cars from real SerpApi listings, the rest demo data.")
     refresh_aggregates(conn)
+    compress_old_chunks(conn)  # the background policy would get to these later; do it now for the demo
+    for s in compression_stats(conn):
+        print(f"Compression {s.table}: {s.chunks_compressed}/{s.chunks_total} chunks, "
+              f"{s.bytes_before:,} -> {s.bytes_after:,} bytes")
     refresh_portfolio(settings.database_url)
     source = "Nessie" if settings.nessie_api_key else "the in-memory Nessie fake"
     print(f"Seeded {len(profiles)} customers using {source}.")
