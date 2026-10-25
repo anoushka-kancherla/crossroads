@@ -3,6 +3,8 @@ here in the API (FR-025)."""
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from ..config import Config
@@ -19,9 +21,10 @@ from .auth import (
     require_staff,
 )
 from .portfolio_service import build_portfolio, refresh_snapshots
-from .schemas import LoginRequest, PortfolioResponse, SessionOut
+from .schemas import FairnessResponse, LoginRequest, PortfolioResponse, SessionOut, fairness_response
 from .snapshots import SnapshotStore
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/internal")
 
 
@@ -77,7 +80,22 @@ def refresh(request: Request, _: dict = Depends(require_staff)):
     store: CustomerStore = state.store
     cfg: Config = state.cfg
     explain: ExplainService = state.explain
-    return build_portfolio(refresh_snapshots(store, state.snapshots, cfg, explain))
+    portfolio = build_portfolio(refresh_snapshots(store, state.snapshots, cfg, explain))
+    try:  # the fairness figures are recomputed too, but a failure there never touches the portfolio
+        state.fairness.recompute()
+    except Exception:
+        log.exception("The fairness report could not be recomputed")
+    return portfolio
+
+
+@router.get("/fairness", response_model=FairnessResponse)
+def fairness(request: Request, _: dict = Depends(require_staff)):
+    """The fairness check on the separate synthetic population: band-level figures only, read-only."""
+    try:
+        return fairness_response(request.app.state.fairness.get())
+    except Exception:
+        log.exception("The fairness report could not be computed")
+        raise HTTPException(status_code=503, detail="The fairness figures couldn't be computed right now.") from None
 
 
 @router.get("/openapi.json", include_in_schema=False)

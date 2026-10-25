@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import { api } from "./api/client";
 import { QueryState } from "./components/QueryState";
+import Fairness from "./routes/Fairness";
 import Login from "./routes/Login";
 import Portfolio from "./routes/Portfolio";
 
@@ -14,6 +15,7 @@ export default function App() {
     mutationFn: api.logout,
     onSettled: () => {
       qc.removeQueries({ queryKey: ["portfolio"] });
+      qc.removeQueries({ queryKey: ["fairness"] });
       qc.setQueryData(["session"], null);
     },
   });
@@ -26,6 +28,14 @@ export default function App() {
           <strong>Crossroads Internal</strong>
           <div className="brand-sub">Toyota Financial Services · staff only</div>
         </div>
+        {user && (
+          <nav aria-label="Main">
+            <NavLink to="/" end>
+              Portfolio
+            </NavLink>
+            <NavLink to="/fairness">Fairness</NavLink>
+          </nav>
+        )}
         {user && (
           <div className="who">
             <span>Signed in as {user}</span>
@@ -41,6 +51,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={s ? <Navigate to="/" replace /> : <Login />} />
               <Route path="/" element={s ? <Portfolio /> : <Navigate to="/login" replace />} />
+              <Route path="/fairness" element={s ? <Fairness /> : <Navigate to="/login" replace />} />
             </Routes>
           )}
         </QueryState>

@@ -3,6 +3,7 @@ import type { components } from "./types";
 // The shapes come from the generated OpenAPI types (`npm run gen:api`), never written by hand.
 export type Portfolio = components["schemas"]["PortfolioResponse"];
 export type PathRow = components["schemas"]["PathRowOut"];
+export type FairnessReport = components["schemas"]["FairnessResponse"];
 export type Session = components["schemas"]["SessionOut"];
 
 const NETWORK_ERROR = "We couldn't reach the server. Please check your connection and try again.";
@@ -72,5 +73,6 @@ export const api = {
     await send("/api/internal/logout", { method: "POST" });
   },
   portfolio: async () => json<Portfolio>(await send("/api/internal/portfolio")),
+  fairness: async () => json<FairnessReport>(await send("/api/internal/fairness")),
   refresh: async () => json<Portfolio>(await send("/api/internal/portfolio/refresh", { method: "POST" })),
 };

@@ -92,6 +92,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/internal/fairness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fairness
+         * @description The fairness check on the separate synthetic population: band-level figures only, read-only.
+         */
+        get: operations["fairness_api_internal_fairness_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -113,6 +133,85 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BandOut */
+        BandOut: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "lower" | "middle" | "higher";
+            /** Label */
+            label: string;
+            /** Customers */
+            customers: number;
+            /** With Recommendation */
+            with_recommendation: number;
+            /** No Affordable */
+            no_affordable: number;
+            /** Path Counts */
+            path_counts: components["schemas"]["PathCountOut"][];
+            /** Avg Revenue */
+            avg_revenue: string | null;
+            /** Avg Revenue N */
+            avg_revenue_n: number;
+            /** With Choice */
+            with_choice: number;
+            /** Single Option */
+            single_option: number;
+            /** Avg Rank Pct */
+            avg_rank_pct: string | null;
+            /** Avg Rank N */
+            avg_rank_n: number;
+            /** Most Profitable Count */
+            most_profitable_count: number;
+            /** Avg Given Up */
+            avg_given_up: string | null;
+            /** Avg Affordable Options */
+            avg_affordable_options: string | null;
+            /** No Affordable Share Pct */
+            no_affordable_share_pct: string | null;
+        };
+        /** FairnessResponse */
+        FairnessResponse: {
+            /** Empty */
+            empty: boolean;
+            /**
+             * Computed At
+             * Format: date-time
+             */
+            computed_at: string;
+            population: components["schemas"]["PopulationOut"];
+            thresholds: components["schemas"]["ThresholdsOut"];
+            /** Bands */
+            bands: components["schemas"]["BandOut"][];
+            /** Path Mix */
+            path_mix: components["schemas"]["PathCountOut"][];
+            verdict: components["schemas"]["VerdictOut"] | null;
+            /** By Type */
+            by_type: components["schemas"]["GapOut"][];
+            /** Limits */
+            limits: string[];
+        };
+        /** GapOut */
+        GapOut: {
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "loan" | "lease";
+            /** Enough */
+            enough: boolean;
+            /** Lowest N */
+            lowest_n: number;
+            /** Highest N */
+            highest_n: number;
+            /** Gap Points */
+            gap_points: string | null;
+            /** Ci Low */
+            ci_low: string | null;
+            /** Ci High */
+            ci_high: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -137,6 +236,18 @@ export interface components {
             username: string;
             /** Password */
             password: string;
+        };
+        /** PathCountOut */
+        PathCountOut: {
+            /**
+             * Path
+             * @enum {string}
+             */
+            path: "keep_as_is" | "buy_out" | "return_lease_new" | "trade_in_early" | "refinance" | "extra_principal" | "walk_away";
+            /** Label */
+            label: string;
+            /** Customers */
+            customers: number;
         };
         /** PathRowOut */
         PathRowOut: {
@@ -164,6 +275,19 @@ export interface components {
             next_step: "self_service" | "eligible_offer" | "specialist_follow_up";
             /** Next Step Label */
             next_step_label: string;
+        };
+        /** PopulationOut */
+        PopulationOut: {
+            /** Size */
+            size: number;
+            /** Seed */
+            seed: number;
+            /** Description */
+            description: string[];
+            /** Loans */
+            loans: number;
+            /** Leases */
+            leases: number;
         };
         /** PortfolioResponse */
         PortfolioResponse: {
@@ -204,6 +328,19 @@ export interface components {
             /** Share Pct */
             share_pct: string;
         };
+        /** ThresholdsOut */
+        ThresholdsOut: {
+            /** Gap Points */
+            gap_points: string;
+            /** Min Choice */
+            min_choice: number;
+            /** Resamples */
+            resamples: number;
+            /** Confidence Pct */
+            confidence_pct: number;
+            /** Bootstrap Seed */
+            bootstrap_seed: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -216,6 +353,28 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerdictOut */
+        VerdictOut: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "no_evidence" | "possible_steering" | "not_enough";
+            /** Sentence */
+            sentence: string;
+            /** Interval Note */
+            interval_note: string | null;
+            /** Gap Points */
+            gap_points: string | null;
+            /** Ci Low */
+            ci_low: string | null;
+            /** Ci High */
+            ci_high: string | null;
+            /** Lowest N */
+            lowest_n: number;
+            /** Highest N */
+            highest_n: number;
         };
     };
     responses: never;
@@ -331,6 +490,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PortfolioResponse"];
+                };
+            };
+        };
+    };
+    fairness_api_internal_fairness_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FairnessResponse"];
                 };
             };
         };

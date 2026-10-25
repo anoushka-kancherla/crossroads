@@ -44,7 +44,7 @@ def test_the_customer_app_source_never_mentions_the_internal_side():
     assert len(files) > 10
     for f in files:
         text = f.read_text()
-        for needle in ("/api/internal", "internal-api", "internal-app", "8081", "staff", "portfolio"):
+        for needle in ("/api/internal", "internal-api", "internal-app", "8081", "staff", "portfolio", "fairness"):
             assert needle not in text.lower(), f"{f.relative_to(ROOT)} mentions {needle!r}"
 
 
@@ -102,3 +102,20 @@ def test_the_internal_api_publishes_no_port_and_the_customer_side_holds_no_staff
         assert secret not in s["customer-api"] and secret not in s["customer-app"], secret
     for key in ("SERPAPI_API_KEY", "NESSIE_API_KEY"):
         assert key not in s["internal-api"], key  # the staff side needs neither
+
+
+def test_the_customer_side_has_no_fairness_route_import_or_link():
+    client = TestClient(customer_app(store=InMemoryStore(PROFILES)))
+    assert not [p for p in client.get("/api/openapi.json").json()["paths"] if "fairness" in p]
+    assert client.get("/api/fairness").status_code in (404, 405)
+    for f in (ROOT / "backend" / "src" / "crossroads" / "customer_api").glob("*.py"):
+        assert "fairness" not in f.read_text().lower(), f.name
+    compose = _compose()
+    assert "FAIRNESS" not in compose["customer-api"] and "FAIRNESS" not in compose["customer-app"]
+
+
+def test_the_fairness_package_reaches_into_neither_api_surface():
+    for f in (ROOT / "backend" / "src" / "crossroads" / "fairness").glob("*.py"):
+        text = f.read_text()
+        assert not re.search(r"^\s*(from|import)\s.*internal_api", text, re.M), f.name
+        assert not re.search(r"^\s*(from|import)\s.*customer_api\.(routes|main)", text, re.M), f.name

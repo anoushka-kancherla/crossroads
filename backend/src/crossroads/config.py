@@ -7,6 +7,7 @@ user. Secrets are read only from environment variables (constitution, principle 
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
@@ -67,3 +68,54 @@ def load_settings() -> Settings:
         session_secret=env("SESSION_SECRET", ""),
         cookie_secure=env("COOKIE_SECURE", "").lower() == "true",
     )
+
+
+@dataclass(frozen=True)
+class FairnessConfig:
+    """Settings for the fairness check (feature 002). The bands, threshold and minimum can be set in the
+    environment; the seeds, resample count and population size are fixed so the method stays reproducible."""
+
+    population_size: int = 500
+    population_seed: int = 20261024
+    band_edges: tuple[Decimal, Decimal] = (_d("4500"), _d("6500"))  # monthly income; a boundary joins the higher band
+    gap_threshold_points: Decimal = _d("15")
+    min_choice: int = 30  # customers with a real choice needed in each compared band
+    resamples: int = 1000
+    bootstrap_seed: int = 20261025
+    confidence: int = 95
+    min_band_population: int = 100  # the generator refuses a population with a thinner band
+
+
+def load_fairness_config(env: Mapping[str, str] | None = None) -> FairnessConfig:
+    """Defaults, overridden by FAIRNESS_BAND_EDGES, FAIRNESS_GAP_THRESHOLD and FAIRNESS_MIN_CHOICE.
+    An empty value means "not set". An invalid value raises a ValueError naming the setting."""
+    env = os.environ if env is None else env
+
+    def raw(name: str) -> str | None:
+        return (env.get(name) or "").strip() or None
+
+    def bad(name: str, why: str) -> ValueError:
+        return ValueError(f"{name} {why}")
+
+    out: dict = {}
+    if (v := raw("FAIRNESS_BAND_EDGES")) is not None:
+        try:
+            edges = tuple(Decimal(x.strip()) for x in v.split(","))
+        except ArithmeticError:
+            raise bad("FAIRNESS_BAND_EDGES", f"must be two comma-separated monthly incomes, got {v!r}") from None
+        if len(edges) != 2 or not (0 < edges[0] < edges[1]):
+            raise bad("FAIRNESS_BAND_EDGES", f"must be two increasing monthly incomes above 0, got {v!r}")
+        out["band_edges"] = edges
+    if (v := raw("FAIRNESS_GAP_THRESHOLD")) is not None:
+        try:
+            t = Decimal(v)
+        except ArithmeticError:
+            raise bad("FAIRNESS_GAP_THRESHOLD", f"must be a number of points above 0, got {v!r}") from None
+        if not t.is_finite() or t <= 0:
+            raise bad("FAIRNESS_GAP_THRESHOLD", f"must be a number of points above 0, got {v!r}")
+        out["gap_threshold_points"] = t
+    if (v := raw("FAIRNESS_MIN_CHOICE")) is not None:
+        if not v.isdigit() or int(v) < 1:
+            raise bad("FAIRNESS_MIN_CHOICE", f"must be a whole number, at least 1, got {v!r}")
+        out["min_choice"] = int(v)
+    return FairnessConfig(**out)

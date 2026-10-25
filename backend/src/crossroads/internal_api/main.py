@@ -16,10 +16,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from ..adapters.llm import LLMClient, make_llm
-from ..config import Config, Settings, load_settings
+from ..config import Config, FairnessConfig, Settings, load_fairness_config, load_settings
 from ..customer_api.store import CustomerStore, DbStore
 from ..db.repo import make_pool
 from ..explain.service import ExplainService
+from ..fairness.report import FairnessService
 from .auth import AuthState
 from .routes import router
 from .snapshots import DbSnapshots, SnapshotStore
@@ -32,6 +33,8 @@ def create_app(
     cfg: Config | None = None,
     llm: LLMClient | None = None,
     clock: Callable[[], float] = time.time,
+    fairness: FairnessService | None = None,
+    fairness_cfg: FairnessConfig | None = None,
 ) -> FastAPI:
     """The app. Without a `store` it reads the database named by DATABASE_URL; tests pass in a store,
     snapshots, settings (with a throwaway hash) and a clock."""
@@ -52,6 +55,8 @@ def create_app(
     # No public schema or docs: the API description is itself behind the sign-in (see routes.py).
     app = FastAPI(title="Crossroads internal API", openapi_url=None, docs_url=None, redoc_url=None, lifespan=lifespan)
     app.state.cfg = cfg or Config()
+    # An invalid FAIRNESS_* value stops the API here, with a message naming the setting.
+    app.state.fairness = fairness or FairnessService(fairness_cfg or load_fairness_config(), app.state.cfg)
     app.state.auth = AuthState(
         user=settings.staff_user,
         password_hash=settings.staff_password_hash,

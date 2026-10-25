@@ -11,7 +11,10 @@ export default function Portfolio() {
   const portfolio = useQuery({ queryKey: ["portfolio"], queryFn: api.portfolio, retry: false });
   const refresh = useMutation({
     mutationFn: api.refresh,
-    onSuccess: (data) => qc.setQueryData(["portfolio"], data),
+    onSuccess: (data) => {
+      qc.setQueryData(["portfolio"], data);
+      void qc.invalidateQueries({ queryKey: ["fairness"] }); // the server recomputed it too (FR-015)
+    },
   });
 
   // An expired or ended session sends staff back to sign-in and drops every figure from memory.

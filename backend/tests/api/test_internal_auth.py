@@ -65,7 +65,8 @@ def protected_routes():
 
 def test_the_router_has_the_routes_we_expect():
     assert {p for _, p in protected_routes()} == {
-        f"{URL}/logout", f"{URL}/session", f"{URL}/portfolio", f"{URL}/portfolio/refresh", f"{URL}/openapi.json"
+        f"{URL}/logout", f"{URL}/session", f"{URL}/portfolio", f"{URL}/portfolio/refresh", f"{URL}/fairness",
+        f"{URL}/openapi.json",
     }
 
 
