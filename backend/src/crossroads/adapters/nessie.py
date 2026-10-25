@@ -1,8 +1,9 @@
 """Capital One Nessie behind an interface (principle IV): a real HTTP client and an in-memory fake.
 
-The response shapes parsed here are PROVISIONAL: written from Nessie's public documentation and
-checked against `tests/fixtures/nessie_*.provisional.json`. Replace the fixtures with captured real
-responses when a `NESSIE_API_KEY` is available (task T013) and adjust the parsers if they differ.
+The response shapes parsed here were checked against responses captured from the live API
+(`tests/fixtures/nessie_*.json`, one synthetic demo customer), and the request rules the API enforces
+(https only, `status` on deposits and purchases, a merchant before a purchase, a string merchant category)
+are covered by tests.
 """
 
 from __future__ import annotations
@@ -86,7 +87,10 @@ class NessieClient(Protocol):
 
 
 class HttpNessie:
-    """The real Nessie API. Used only from the seed script, never at request time."""
+    """The real Nessie API. The seed script creates and reads records with it; the customer API uses it
+    only to re-read one customer's own figures when they press "Sync from my bank" (FR-039)."""
+
+    real = True
 
     def __init__(self, api_key: str, base_url: str = BASE_URL, http: httpx.Client | None = None):
         if not api_key:
@@ -174,6 +178,8 @@ class HttpNessie:
 class FakeNessie:
     """In-memory stand-in with the same behavior and shapes (it stores Nessie-shaped JSON and
     reads it back through the same parsers), so tests and keyless runs need no network."""
+
+    real = False
 
     def __init__(self) -> None:
         self._n = 0

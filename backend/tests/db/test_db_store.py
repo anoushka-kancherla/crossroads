@@ -153,3 +153,9 @@ def test_the_money_source_is_demo_for_the_fake_and_nessie_only_when_every_accoun
     finally:
         conn.execute("UPDATE accounts SET source = 'demo' WHERE customer_id = 'cust_01'")
         conn.close()
+
+
+def test_the_payments_aggregate_matches_the_in_memory_history(stores):
+    db, mem = stores
+    for p in PROFILES:
+        assert db.monthly_payments(p.id) == mem.monthly_payments(p.id), p.id

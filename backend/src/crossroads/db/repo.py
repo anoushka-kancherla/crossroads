@@ -144,6 +144,15 @@ def monthly_miles(conn: psycopg.Connection, customer_id: str) -> list[tuple[date
     return [(month.date(), miles) for month, miles in rows if miles is not None]
 
 
+def monthly_payments(conn: psycopg.Connection, customer_id: str) -> list[tuple[date, Decimal, Decimal, Decimal]]:
+    """Payments per month split into principal and interest, from the monthly_payments aggregate."""
+    rows = conn.execute(
+        "SELECT month, amount, principal, interest FROM monthly_payments WHERE customer_id = %s ORDER BY month",
+        (customer_id,),
+    ).fetchall()
+    return [(month.date(), amount, principal, interest) for month, amount, principal, interest in rows]
+
+
 def monthly_spend(conn: psycopg.Connection, customer_id: str) -> list[tuple[date, str, Decimal]]:
     """Spending per month and category, from the monthly_spend aggregate."""
     rows = conn.execute(

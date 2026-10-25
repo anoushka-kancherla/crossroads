@@ -28,6 +28,7 @@ const lease: Overview = {
   money: {
     checking: "3100.00", savings: "1800.00", monthly_income: "5200.00", monthly_bills: "2650.00",
     room_for_payment: "2250.00", source: "nessie", source_label: "Balances, income and bills from Capital One Nessie (sandbox)",
+    synced_at: null,
   },
   market_value: {
     low: "21244.00", median: "22600.00", high: "23956.00", n_listings: 8, updated_at: "2026-10-24T12:00:00Z",
@@ -46,19 +47,19 @@ const loan: Overview = {
   },
 };
 
-type Reply = { status?: number; body: unknown } | Error | "never";
+type Reply = { status?: number; body: unknown; headers?: Record<string, string> } | Error | "never";
 
 function stubFetch(handler: (url: string) => Reply) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string) => {
+  const fn = vi.fn(async (url: string) => {
       const reply = handler(url);
       if (reply === "never") return new Promise(() => {});
       if (reply instanceof Error) throw reply;
       const status = reply.status ?? 200;
-      return { ok: status < 400, status, json: async () => reply.body };
-    }),
-  );
+      const headers = { get: (name: string) => reply.headers?.[name] ?? null };
+      return { ok: status < 400, status, headers, json: async () => reply.body };
+  });
+  vi.stubGlobal("fetch", fn);
+  return fn;
 }
 
 function renderApp() {
@@ -199,5 +200,107 @@ describe("Customer overview", () => {
     renderApp();
     expect(await screen.findByText("$16,696 (estimated)")).toBeInTheDocument();
     expect(screen.getByText(/illustrative 12% yearly depreciation/)).toBeInTheDocument();
+  });
+});
+
+describe("Sync from my bank (FR-039)", () => {
+  const synced = {
+    ...lease.money, checking: "3250.00", room_for_payment: "2250.00", synced_at: "2026-10-24T18:30:00Z",
+  };
+
+  it("offers the button, and says when the figures were last read", async () => {
+    stubFetch(happy);
+    renderApp();
+    expect(await screen.findByRole("button", { name: "Sync from my bank" })).toBeEnabled();
+    expect(screen.getByText("Not synced yet")).toBeInTheDocument();
+  });
+
+  it("replaces the figures with the refreshed ones and shows the sync time", async () => {
+    stubFetch((url) => (url.endsWith("/sync") ? { body: { money: synced } } : happy(url)));
+    renderApp();
+    expect(await screen.findByText("$3,100")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sync from my bank" }));
+    expect(await screen.findByText("$3,250")).toBeInTheDocument();
+    expect(screen.getByText("Last synced Oct 24, 2026, 6:30 PM UTC")).toBeInTheDocument();
+    expect(screen.queryByText("$3,100")).not.toBeInTheDocument();
+  });
+
+  it("keeps the last figures and says so in plain words when the bank cannot be reached", async () => {
+    stubFetch((url) =>
+      url.endsWith("/sync")
+        ? { status: 503, body: { detail: "Your bank figures couldn't be refreshed right now." } }
+        : happy(url),
+    );
+    renderApp();
+    await screen.findByText("$3,100");
+    fireEvent.click(screen.getByRole("button", { name: "Sync from my bank" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Your bank figures couldn't be refreshed right now.");
+    expect(screen.getByText("$3,100")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sync from my bank" })).toBeEnabled();
+  });
+
+  it("says how long to wait when the limit is reached", async () => {
+    stubFetch((url) =>
+      url.endsWith("/sync")
+        ? { status: 429, body: { detail: "You've made a lot of requests. Please try again later." }, headers: { "Retry-After": "1800" } }
+        : happy(url),
+    );
+    renderApp();
+    await screen.findByText("$3,100");
+    fireEvent.click(screen.getByRole("button", { name: "Sync from my bank" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Please try again later. Try again in 30 minutes.");
+  });
+
+  it("offers no sync for a demo customer, who has no bank behind them", async () => {
+    const demo: Overview = { ...lease, money: { ...lease.money, source: "demo", source_label: "Demo data: not connected to a bank" } };
+    stubFetch((url) => (url.endsWith("/cust_01/overview") ? { body: demo } : happy(url)));
+    renderApp();
+    expect(await screen.findByText("Demo data: not connected to a bank")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sync from my bank" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Payments view (FR-040)", () => {
+  const history = {
+    kind: "lease",
+    months: [
+      { month: "2026-08", amount: "389.00", principal: "301.66", interest: "87.34" },
+      { month: "2026-09", amount: "389.00", principal: "301.66", interest: "87.34" },
+    ],
+  };
+
+  it("is a third choice beside mileage and spending, and asks for nothing until chosen", async () => {
+    const fn = stubFetch((url) => (url.endsWith("/payments") ? { body: history } : happy(url)));
+    renderApp();
+    await screen.findByText("Hi Maya, here's where you stand");
+    expect(screen.getByLabelText("Payments")).not.toBeChecked();
+    expect(fn.mock.calls.some(([u]) => String(u).endsWith("/payments"))).toBe(false);
+    fireEvent.click(screen.getByLabelText("Payments"));
+    expect(await screen.findByRole("heading", { name: "Payments: principal and interest" })).toBeInTheDocument();
+    expect(await screen.findByLabelText("Monthly payments split into principal and interest")).toBeInTheDocument();
+  });
+
+  it("shows a loading state while the history is on the way", async () => {
+    stubFetch((url) => (url.endsWith("/payments") ? "never" : happy(url)));
+    renderApp();
+    await screen.findByText("Hi Maya, here's where you stand");
+    fireEvent.click(screen.getByLabelText("Payments"));
+    expect((await screen.findAllByRole("status")).some((n) => /Loading/.test(n.textContent ?? ""))).toBe(true);
+  });
+
+  it("shows an empty state for a customer with no payments yet", async () => {
+    stubFetch((url) => (url.endsWith("/payments") ? { body: { kind: "lease", months: [] } } : happy(url)));
+    renderApp();
+    await screen.findByText("Hi Maya, here's where you stand");
+    fireEvent.click(screen.getByLabelText("Payments"));
+    expect(await screen.findByText("No payments to show yet.")).toBeInTheDocument();
+  });
+
+  it("shows a readable error when the history cannot be loaded", async () => {
+    stubFetch((url) => (url.endsWith("/payments") ? { status: 503, body: { detail: "Try again soon." } } : happy(url)));
+    renderApp();
+    await screen.findByText("Hi Maya, here's where you stand");
+    fireEvent.click(screen.getByLabelText("Payments"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Try again soon.");
   });
 });

@@ -18,6 +18,8 @@ from .schemas import (
     MileagePoint,
     Money,
     OverviewResponse,
+    PaymentMonth,
+    PaymentsResponse,
     Projection,
     SpendingPoint,
     SpendingResponse,
@@ -71,6 +73,19 @@ def market_value_of(rec: CustomerRecord, cfg: Config) -> tuple[Decimal, str]:
         return rec.quote.median, "listings"
     value, _ = valuation.todays_value(None, rec.vehicle.original_price, cfg.as_of.year - rec.vehicle.year, cfg)
     return value, "original_price"
+
+
+def money_panel(rec: CustomerRecord, cfg: Config) -> Money:
+    return Money(
+        checking=cents(rec.checking),
+        savings=cents(rec.savings),
+        monthly_income=cents(rec.income),
+        monthly_bills=cents(rec.bills_total),
+        room_for_payment=cents(max(ZERO, rec.income - rec.bills_total - cfg.buffer)),
+        source=rec.data_source,
+        source_label=SOURCE_LABELS[rec.data_source],
+        synced_at=rec.synced_at,
+    )
 
 
 def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Config) -> OverviewResponse:
@@ -140,15 +155,7 @@ def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Conf
                 overage_fee=cents(over * c.overage_fee_per_mile) if over is not None else None,
             ),
         ),
-        money=Money(
-            checking=cents(rec.checking),
-            savings=cents(rec.savings),
-            monthly_income=cents(rec.income),
-            monthly_bills=cents(rec.bills_total),
-            room_for_payment=cents(max(ZERO, rec.income - rec.bills_total - cfg.buffer)),
-            source=rec.data_source,
-            source_label=SOURCE_LABELS[rec.data_source],
-        ),
+        money=money_panel(rec, cfg),
         market_value=MarketValue(
             low=rec.quote.low if rec.quote else None,
             median=cents(value),
@@ -160,6 +167,16 @@ def build_overview(rec: CustomerRecord, miles: list[tuple[date, int]], cfg: Conf
             source=rec.quote_source,
             source_label=QUOTE_SOURCE_LABELS[rec.quote_source],
         ),
+    )
+
+
+def build_payments(kind: str, rows: list[tuple[date, Decimal, Decimal, Decimal]]) -> PaymentsResponse:
+    return PaymentsResponse(
+        kind=kind,
+        months=[
+            PaymentMonth(month=_month_key(m), amount=cents(a), principal=cents(p), interest=cents(i))
+            for m, a, p, i in rows
+        ],
     )
 
 

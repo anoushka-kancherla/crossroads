@@ -46,7 +46,9 @@ def test_the_api_exposes_only_customer_routes(client):
     assert paths == {"/api/customers", "/api/customers/{customer_id}/overview",
                      "/api/customers/{customer_id}/spending", "/api/customers/{customer_id}/paths",
                      "/api/customers/{customer_id}/explanation", "/api/customers/{customer_id}/dealers",
-                     "/api/customers/{customer_id}/next-step", "/healthz"}
+                     "/api/customers/{customer_id}/next-step", "/api/customers/{customer_id}/sync",
+                     "/api/customers/{customer_id}/payments",
+                     "/api/customers/{customer_id}/ask", "/healthz"}
     for path in paths:
         for word in ("internal", "portfolio", "aggregate", "retained", "revenue", "business"):
             assert word not in path

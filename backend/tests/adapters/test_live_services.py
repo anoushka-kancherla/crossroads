@@ -39,3 +39,43 @@ def test_gemini_returns_the_structured_draft_the_app_expects():
     )
     assert isinstance(draft, ExplanationDraft) and draft.headline and draft.explanation
     assert "{saving}" in draft.explanation or "{saving}" in draft.headline
+
+
+@pytest.mark.skipif(
+    not (os.environ.get("GEMINI_API_KEY") and os.environ.get("GEMINI_MODEL")), reason="Gemini is not configured"
+)
+def test_gemini_answers_a_question_with_placeholders_that_pass_the_number_check():
+    from crossroads.explain.ask import answer_question
+
+    facts = {
+        "path_label": "Buy out", "cost_5yr": "$25,729", "monthly_payment": "$420", "monthly_room": "$1,830",
+        "horizon_years": "5 years",
+    }
+    llm = GeminiClient(os.environ["GEMINI_API_KEY"], os.environ["GEMINI_MODEL"])
+    answer = answer_question(llm, "Can I afford the payment, and what would it cost me in total?", facts)
+    assert answer is not None, "a real answer should pass the same number check as the fakes"
+    figures = ("$25,729", "$420", "$1,830", "5 years")
+    leftover = answer
+    for figure in figures:
+        leftover = leftover.replace(figure, "")
+    assert not any(ch.isdigit() for ch in leftover), "only the engine's own figures may appear"
+
+
+@pytest.mark.skipif(not os.environ.get("NESSIE_API_KEY"), reason="NESSIE_API_KEY is not set")
+def test_a_sync_style_read_back_works_against_the_live_api():
+    """The read the sync route makes: one customer's accounts, bills, deposits and purchases, parsed."""
+    from crossroads.adapters.nessie import NessieError
+
+    client = HttpNessie(os.environ["NESSIE_API_KEY"])
+    assert client.real is True
+    read_fully = 0
+    for customer in client._get("/customers")[:25]:
+        try:
+            for account in client.get_accounts(customer["_id"]):
+                client.get_bills(account.id)
+                client.get_deposits(account.id)
+                client.get_purchases(account.id)
+            read_fully += 1
+        except NessieError:  # a customer left half-made by an earlier failed seed can be unreadable
+            continue
+    assert read_fully >= 1

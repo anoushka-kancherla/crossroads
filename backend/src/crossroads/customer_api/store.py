@@ -16,7 +16,9 @@ from psycopg_pool import ConnectionPool
 
 from ..adapters.dealers import Dealer
 from ..adapters.listings import ListingQuote
+from ..adapters.nessie import NessieClient
 from ..db import repo
+from ..db.nessie_sync import is_fake_id, is_real, read_back
 from ..engine.schemas import Contract
 
 
@@ -58,6 +60,11 @@ class CustomerRecord:
     quote_updated_at: datetime | None
     data_source: str = "demo"  # "nessie" when the accounts were read back from Capital One Nessie
     quote_source: str = "demo"  # "serpapi" when the market value came from real listings via SerpApi
+    synced_at: datetime | None = None  # when the bank figures were last read back from Nessie
+
+
+class NotConnected(Exception):
+    """The customer is demo data with no bank behind it, so there is nothing to sync."""
 
 
 class CustomerStore(Protocol):
@@ -65,6 +72,8 @@ class CustomerStore(Protocol):
     def get_record(self, customer_id: str) -> CustomerRecord | None: ...
     def monthly_miles(self, customer_id: str) -> list[tuple[date, int]]: ...
     def monthly_spend(self, customer_id: str) -> list[tuple[date, str, Decimal]]: ...
+    def monthly_payments(self, customer_id: str) -> list[tuple[date, Decimal, Decimal, Decimal]]: ...
+    def sync_from_nessie(self, customer_id: str, nessie: NessieClient) -> CustomerRecord | None: ...
     def dealer_candidates(self, zip_code: str) -> list[Dealer] | None: ...
     def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None: ...
 
@@ -105,10 +114,11 @@ class DbStore:
              kind, end_date, term, months_left, payment, apr, balance, mf, cap, residual, allowance,
              fee) = row
             account_rows = conn.execute(
-                "SELECT kind, balance, source FROM accounts WHERE customer_id = %s", (cid,)
+                "SELECT kind, balance, source, synced_at FROM accounts WHERE customer_id = %s", (cid,)
             ).fetchall()
-            accounts = {kind: balance for kind, balance, _ in account_rows}
-            data_source = "nessie" if account_rows and all(s == "nessie" for *_, s in account_rows) else "demo"
+            accounts = {kind: balance for kind, balance, _, _ in account_rows}
+            data_source = "nessie" if account_rows and all(r[2] == "nessie" for r in account_rows) else "demo"
+            synced_at = max((r[3] for r in account_rows), default=None)
             income = conn.execute(
                 "SELECT monthly_amount FROM income WHERE customer_id = %s ORDER BY deposited_on DESC LIMIT 1", (cid,)
             ).fetchone()
@@ -136,6 +146,7 @@ class DbStore:
             quote_updated_at=quote_row[4] if quote_row else None,
             data_source=data_source,
             quote_source=quote_row[5] if quote_row else "demo",
+            synced_at=synced_at if data_source == "nessie" else None,
         )
 
     def monthly_miles(self, customer_id: str) -> list[tuple[date, int]]:
@@ -146,6 +157,10 @@ class DbStore:
         with self._pool.connection() as conn:
             return repo.monthly_spend(conn, customer_id)
 
+    def monthly_payments(self, customer_id: str) -> list[tuple[date, Decimal, Decimal, Decimal]]:
+        with self._pool.connection() as conn:
+            return repo.monthly_payments(conn, customer_id)
+
     def dealer_candidates(self, zip_code: str) -> list[Dealer] | None:
         with self._pool.connection() as conn:
             return repo.dealer_candidates(conn, zip_code)
@@ -153,3 +168,15 @@ class DbStore:
     def save_dealer_candidates(self, zip_code: str, dealers: list[Dealer]) -> None:
         with self._pool.connection() as conn:
             repo.save_dealer_candidates(conn, zip_code, dealers)
+
+    def sync_from_nessie(self, customer_id: str, nessie: NessieClient) -> CustomerRecord | None:
+        """Re-read this one customer's accounts, bills, deposits and purchases from Nessie. Only a customer
+        who already has a real Nessie id and a real client can be synced: demo data has no bank behind it."""
+        with self._pool.connection() as conn:
+            row = conn.execute("SELECT nessie_customer_id FROM customers WHERE id = %s", (customer_id,)).fetchone()
+            if row is None:
+                return None
+            if not row[0] or is_fake_id(row[0]) or not is_real(nessie):
+                raise NotConnected(customer_id)
+            read_back(conn, nessie, row[0])
+        return self.get_record(customer_id)

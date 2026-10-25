@@ -6,7 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CustomerListItem(BaseModel):
@@ -66,6 +66,11 @@ class Money(BaseModel):
     room_for_payment: Decimal
     source: Literal["nessie", "demo"]  # where the balances, income and bills were read from
     source_label: str
+    synced_at: datetime | None  # when they were last read back from Nessie
+
+
+class SyncResponse(BaseModel):
+    money: Money
 
 
 class MarketValue(BaseModel):
@@ -98,6 +103,18 @@ class SpendingResponse(BaseModel):
     months: list[SpendingPoint]
 
 
+class PaymentMonth(BaseModel):
+    month: str  # "YYYY-MM"
+    amount: Decimal
+    principal: Decimal
+    interest: Decimal  # a lease's rent charge
+
+
+class PaymentsResponse(BaseModel):
+    kind: Literal["lease", "loan"]
+    months: list[PaymentMonth]
+
+
 PathName = Literal[
     "keep_as_is", "buy_out", "return_lease_new", "trade_in_early", "refinance", "extra_principal", "walk_away"
 ]
@@ -112,6 +129,25 @@ class PathsRequest(BaseModel):
     monthly_budget: Decimal | None = Field(default=None, ge=200, multiple_of=10)
     years_to_keep: int | None = Field(default=None, ge=1, le=8)
     financing_rate: Decimal | None = Field(default=None, ge=3, le=12, multiple_of=Decimal("0.25"))
+
+
+class AskRequest(PathsRequest):
+    """A question, plus the same optional slider values as /paths (so the answer matches what is on screen)."""
+
+    question: str = Field(max_length=300)
+
+    @field_validator("question")
+    @classmethod
+    def _not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Please type a question.")
+        return v
+
+
+class AskResponse(BaseModel):
+    answer: str | None
+    verified: bool
+    message: str | None
 
 
 class ScenarioOut(BaseModel):

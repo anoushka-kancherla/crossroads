@@ -3,7 +3,8 @@
 SerpApi has no used-car listings engine that I know of, so the real client reads dollar amounts
 out of Google search results for the car and keeps the median when it finds enough plausible ones.
 When it finds too few, or the call fails, the caller falls back to the depreciation estimate (FR-005),
-so nothing depends on this working. Unverified against a live key.
+so nothing depends on this working. Checked against live results: some cars return no usable prices, and results mix
+trims and years, so `trim_outliers` narrows them first.
 """
 
 from __future__ import annotations

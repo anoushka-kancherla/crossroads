@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
-    "gen:api": "openapi-typescript http://localhost:8080/api/openapi.json -o src/api/types.ts"
+    "gen:api": "../backend/.venv/bin/python ../backend/scripts/dump_openapi.py customer > .openapi.tmp.json && openapi-typescript .openapi.tmp.json -o src/api/types.ts; rm -f .openapi.tmp.json"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.51.0",

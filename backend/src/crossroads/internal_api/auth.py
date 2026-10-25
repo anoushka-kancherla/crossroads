@@ -15,7 +15,6 @@ import base64
 import getpass
 import hashlib
 import hmac
-import ipaddress
 import json
 import secrets
 import sys
@@ -26,6 +25,8 @@ from dataclasses import dataclass, field
 from argon2 import PasswordHasher
 from argon2.exceptions import Argon2Error
 from fastapi import HTTPException, Request
+
+from ..net import client_ip  # noqa: F401 - re-exported for the routes
 
 COOKIE = "crossroads_staff"
 COOKIE_PATH = "/api/internal"  # the browser sends it nowhere else
@@ -84,33 +85,6 @@ def read_token(token: str, secret: str, now: float) -> dict | None:
 FAIL_LIMIT = 5  # failed sign-ins from one address ...
 FAIL_WINDOW = 15 * 60  # ... within this many seconds lock it ...
 LOCK_SECONDS = 15 * 60  # ... for this many (FR-036)
-
-
-def _is_proxy(address: str) -> bool:
-    """True for a private or loopback peer: the proxy in front of the API, not a browser on the internet."""
-    try:
-        ip = ipaddress.ip_address(address)
-    except ValueError:
-        return False
-    return ip.is_private or ip.is_loopback
-
-
-def client_ip(request: Request) -> str:
-    """The address the sign-in limit is counted against. X-Forwarded-For is believed only when the
-    request itself comes from the proxy, and then only its rightmost public entry (each proxy appends the
-    address it saw, so anything a client wrote earlier in the list is ignored). If every entry is private,
-    as on a local Docker network, the proxy's own address is used: everyone then shares one count."""
-    peer = request.client.host if request.client else "unknown"
-    if not _is_proxy(peer):
-        return peer
-    for hop in reversed([h.strip() for h in request.headers.get("x-forwarded-for", "").split(",")]):
-        try:
-            ip = ipaddress.ip_address(hop)
-        except ValueError:
-            continue
-        if not (ip.is_private or ip.is_loopback):
-            return str(ip)
-    return peer
 
 
 @dataclass

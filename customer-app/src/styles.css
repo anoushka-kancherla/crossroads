@@ -73,3 +73,7 @@ button:disabled { opacity: 0.6; cursor: default; }
 .tag { font-size: 0.8rem; border: 1px solid #555; padding: 0 0.4rem; }
 .why { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; color: #8a4b00; }
 [role="alert"] { border: 1px solid #b00020; color: #b00020; padding: 0.5rem 0.75rem; }
+.sync { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.25rem 0 0.75rem; }
+.sync [role="alert"] { flex-basis: 100%; margin: 0; }
+textarea { font: inherit; width: 100%; box-sizing: border-box; padding: 0.5rem; border: 1px solid #777; }
+.answer { font-size: 1.05rem; margin: 0.75rem 0 0.25rem; }

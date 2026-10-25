@@ -26,6 +26,11 @@ export function monthLabel(yearMonth: string): string {
   });
 }
 
+/** "Oct 24, 2026, 12:00 PM UTC": a time with its zone, so it reads the same wherever it is shown. */
+export function dateTimeLabel(iso: string): string {
+  return `${new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" })} UTC`;
+}
+
 export function dateLabel(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }

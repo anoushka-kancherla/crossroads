@@ -12,9 +12,22 @@ export type Dealer = components["schemas"]["DealerOut"];
 export type Dealers = components["schemas"]["DealersResponse"];
 export type NextStepRequest = components["schemas"]["NextStepRequest"];
 export type NextStepResult = components["schemas"]["NextStepResponse"];
+export type SyncResult = components["schemas"]["SyncResponse"];
+export type Payments = components["schemas"]["PaymentsResponse"];
+export type AskRequest = components["schemas"]["AskRequest"];
+export type AskResult = components["schemas"]["AskResponse"];
 
 const NETWORK_ERROR = "We couldn't reach the server. Please check your connection and try again.";
 const GENERIC_ERROR = "Something went wrong. Please try again.";
+
+/** "Try again in 15 minutes." from the Retry-After seconds, or nothing when the header is missing. */
+export function retryHint(header: string | null | undefined): string {
+  const seconds = Number(header);
+  if (!header || !Number.isFinite(seconds) || seconds <= 0) return "";
+  if (seconds < 60) return `Try again in ${Math.ceil(seconds)} seconds.`;
+  const minutes = Math.ceil(seconds / 60);
+  return `Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
+}
 
 async function detailOf(res: Response): Promise<string> {
   try {
@@ -33,7 +46,10 @@ async function send<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new Error(NETWORK_ERROR);
   }
-  if (!res.ok) throw new Error(await detailOf(res));
+  if (!res.ok) {
+    const detail = await detailOf(res);
+    throw new Error(res.status === 429 ? `${detail} ${retryHint(res.headers?.get("Retry-After"))}`.trim() : detail);
+  }
   return (await res.json()) as T;
 }
 
@@ -52,4 +68,8 @@ export const api = {
   explanation: (id: string, inputs: PathsInputs = {}) => postJson<Explanation>(`${customer(id)}/explanation`, inputs),
   dealers: (id: string) => getJson<Dealers>(`${customer(id)}/dealers`),
   nextStep: (id: string, body: NextStepRequest) => postJson<NextStepResult>(`${customer(id)}/next-step`, body),
+  /** Re-read this customer's bank figures from Nessie. */
+  sync: (id: string) => postJson<SyncResult>(`${customer(id)}/sync`, {}),
+  payments: (id: string) => getJson<Payments>(`${customer(id)}/payments`),
+  ask: (id: string, body: AskRequest) => postJson<AskResult>(`${customer(id)}/ask`, body),
 };

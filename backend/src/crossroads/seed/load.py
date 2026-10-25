@@ -18,6 +18,7 @@ from ..adapters.listings import ListingsClient, SerpApiListings
 from ..adapters.nessie import FakeNessie, HttpNessie, NessieClient
 from ..config import load_settings
 from ..db import repo
+from ..db.nessie_sync import is_real, read_back, reset_demo_rows
 from ..db.repo import apply_schema, compress_old_chunks, compression_stats, connect, refresh_aggregates
 from .profiles import Profile, generate_profiles, payment_history, synthetic_quote
 
@@ -145,34 +146,6 @@ def ensure_in_nessie(conn: psycopg.Connection, nessie: NessieClient, p: Profile)
     return nessie_cid
 
 
-def read_back(conn: psycopg.Connection, nessie: NessieClient, p: Profile, nessie_cid: str) -> None:
-    """Make the tables mirror what Nessie returns."""
-    source = "nessie" if isinstance(nessie, HttpNessie) else "demo"
-    for acct in nessie.get_accounts(nessie_cid):
-        conn.execute(
-            "UPDATE accounts SET kind = %s, balance = %s, source = %s, synced_at = now() "
-            "WHERE nessie_account_id = %s",
-            (acct.kind, acct.balance, source, acct.id),
-        )
-        if acct.kind != "checking":
-            continue
-        for b in nessie.get_bills(acct.id):
-            conn.execute(
-                "UPDATE bills SET payee = %s, monthly_amount = %s WHERE nessie_bill_id = %s",
-                (b.payee, b.amount, b.id),
-            )
-        for d in nessie.get_deposits(acct.id):
-            conn.execute(
-                "UPDATE income SET deposited_on = %s, monthly_amount = %s WHERE nessie_deposit_id = %s",
-                (d.on, d.amount, d.id),
-            )
-        for t in nessie.get_purchases(acct.id):
-            conn.execute(
-                "UPDATE transactions SET amount = %s, category = %s WHERE nessie_purchase_id = %s",
-                (t.amount, t.category, t.id),
-            )
-
-
 def warm_dealer_cache(conn: psycopg.Connection, dealers: DealersClient, profiles: list[Profile]) -> list[str]:
     """Look up the dealers for every demo ZIP once, so the next-step screen never waits on a live
     search. A ZIP that is already cached is skipped, so re-running costs nothing. Returns the ZIPs that
@@ -236,8 +209,10 @@ def seed(
 ) -> list[str]:
     for p in profiles:
         upsert_profile(conn, p)
+        if is_real(nessie):
+            reset_demo_rows(conn, p.id)  # a demo seed's fake ids are replaced; real ids are never touched
         nessie_cid = ensure_in_nessie(conn, nessie, p)
-        read_back(conn, nessie, p, nessie_cid)
+        read_back(conn, nessie, nessie_cid)
     if listings is not None:
         warm_listing_cache(conn, listings, profiles)
     return warm_dealer_cache(conn, dealers, profiles) if dealers is not None else []

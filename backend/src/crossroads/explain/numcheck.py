@@ -15,7 +15,7 @@ PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
 _NUMBER_WORDS = re.compile(
     r"\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
     r"fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|"
-    r"ninety|hundred|thousand|million)\b",
+    r"ninety|(?:hundred|thousand|million|billion|dozen)s?)\b",
     re.IGNORECASE,
 )
 

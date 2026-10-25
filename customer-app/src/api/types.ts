@@ -55,6 +55,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customers/{customer_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Payments
+         * @description Monthly payments split into principal and interest, from the monthly_payments aggregate (FR-040).
+         */
+        get: operations["payments_api_customers__customer_id__payments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/{customer_id}/paths": {
         parameters: {
             query?: never;
@@ -138,6 +158,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/customers/{customer_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync
+         * @description Re-read this one customer's bank figures from Nessie and return the refreshed money panel. When Nessie
+         *     is not set up or cannot be reached the panel keeps its last values and the message is plain (FR-039).
+         */
+        post: operations["sync_api_customers__customer_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/customers/{customer_id}/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask
+         * @description Answer a question about this customer's options from the engine's facts only. The answer reaches the
+         *     customer only after the same number check as an explanation; otherwise there is no answer and no figure
+         *     from the model (FR-041). Stateless: nothing the customer sees is changed by asking.
+         */
+        post: operations["ask_api_customers__customer_id__ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -159,6 +222,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AskRequest
+         * @description A question, plus the same optional slider values as /paths (so the answer matches what is on screen).
+         */
+        AskRequest: {
+            /** Miles Per Year */
+            miles_per_year?: number | null;
+            /** Monthly Budget */
+            monthly_budget?: number | string | null;
+            /** Years To Keep */
+            years_to_keep?: number | null;
+            /** Financing Rate */
+            financing_rate?: number | string | null;
+            /** Question */
+            question: string;
+        };
+        /** AskResponse */
+        AskResponse: {
+            /** Answer */
+            answer: string | null;
+            /** Verified */
+            verified: boolean;
+            /** Message */
+            message: string | null;
+        };
         /**
          * CustomerListItem
          * @description The picker row: nothing but who they are and what they drive (FR-028).
@@ -308,6 +396,8 @@ export interface components {
             source: "nessie" | "demo";
             /** Source Label */
             source_label: string;
+            /** Synced At */
+            synced_at: string | null;
         };
         /** NextStepRequest */
         NextStepRequest: {
@@ -407,6 +497,27 @@ export interface components {
             /** Assumptions */
             assumptions: string[];
         };
+        /** PaymentMonth */
+        PaymentMonth: {
+            /** Month */
+            month: string;
+            /** Amount */
+            amount: string;
+            /** Principal */
+            principal: string;
+            /** Interest */
+            interest: string;
+        };
+        /** PaymentsResponse */
+        PaymentsResponse: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "lease" | "loan";
+            /** Months */
+            months: components["schemas"]["PaymentMonth"][];
+        };
         /** Projection */
         Projection: {
             /** Rate Per Year */
@@ -488,6 +599,10 @@ export interface components {
         SpendingResponse: {
             /** Months */
             months: components["schemas"]["SpendingPoint"][];
+        };
+        /** SyncResponse */
+        SyncResponse: {
+            money: components["schemas"]["Money"];
         };
         /** Tiles */
         Tiles: {
@@ -604,6 +719,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SpendingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    payments_api_customers__customer_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -740,6 +886,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExplanationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_api_customers__customer_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_api_customers__customer_id__ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
                 };
             };
             /** @description Validation Error */

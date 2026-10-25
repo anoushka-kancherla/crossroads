@@ -27,16 +27,16 @@ FIXTURES = Path(__file__).parent.parent / "fixtures"
 
 
 def fixture(name: str) -> dict:
-    # Provisional fixtures: replace with captured responses when a Nessie key is available.
-    return json.loads((FIXTURES / f"nessie_{name}.provisional.json").read_text())
+    # Captured from the live Nessie API (one synthetic demo customer), not written from the documentation.
+    return json.loads((FIXTURES / f"nessie_{name}.json").read_text())
 
 
 def test_parsers_read_the_fixtures():
-    assert parse_account(fixture("account")) == NessieAccount("5f00000000000000000000a1", "checking", D(3100))
-    assert parse_bill(fixture("bill")) == NessieBill("5f00000000000000000000b1", "Rent or mortgage", D(1650))
-    assert parse_deposit(fixture("deposit")) == NessieDeposit("5f00000000000000000000d1", date(2026, 10, 24), D(5200))
+    assert parse_account(fixture("account")) == NessieAccount(fixture("account")["_id"], "checking", D(3100))
+    assert parse_bill(fixture("bill")) == NessieBill(fixture("bill")["_id"], "Internet", D(106))
+    assert parse_deposit(fixture("deposit")) == NessieDeposit(fixture("deposit")["_id"], date(2026, 8, 25), D(5200))
     assert parse_purchase(fixture("purchase")) == NessiePurchase(
-        "5f00000000000000000000c1", date(2026, 10, 21), D("120.5"), "groceries"
+        fixture("purchase")["_id"], date(2026, 7, 26), D(477), "groceries"
     )
 
 
@@ -93,7 +93,7 @@ def test_the_http_client_reads_accounts_and_ignores_other_account_types():
         return httpx.Response(200, json=rows)
 
     accounts = HttpNessie("KEY", http=_mock(handler)).get_accounts("cust")
-    assert [a.id for a in accounts] == ["5f00000000000000000000a1"]
+    assert [a.id for a in accounts] == [fixture("account")["_id"]]
 
 
 def test_the_http_client_surfaces_api_errors_without_the_key():

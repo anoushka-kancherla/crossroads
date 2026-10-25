@@ -11,8 +11,10 @@ from datetime import UTC, date, datetime, time
 from decimal import Decimal
 
 from ..adapters.dealers import Dealer
-from ..customer_api.store import CustomerListEntry, CustomerRecord, VehicleInfo
-from .profiles import AS_OF, Profile, synthetic_quote
+from ..adapters.nessie import NessieClient
+from ..customer_api.store import CustomerListEntry, CustomerRecord, NotConnected, VehicleInfo
+from ..db.nessie_sync import is_real
+from .profiles import AS_OF, Profile, payment_history, synthetic_quote
 
 
 def _month(d: date) -> date:
@@ -23,6 +25,7 @@ class InMemoryStore:
     def __init__(self, profiles: list[Profile]):
         self._profiles = {p.id: p for p in sorted(profiles, key=lambda p: p.id)}
         self._dealers: dict[str, list[Dealer]] = {}
+        self._synced: dict[str, datetime] = {}
 
     def dealer_candidates(self, zip_code: str) -> list[Dealer] | None:
         return self._dealers.get(zip_code)
@@ -48,7 +51,19 @@ class InMemoryStore:
             bills_total=sum((a for _, a in p.bills), Decimal(0)),
             quote=quote,
             quote_updated_at=datetime.combine(AS_OF, time(12), tzinfo=UTC) if quote else None,
+            data_source="nessie" if customer_id in self._synced else "demo",
+            synced_at=self._synced.get(customer_id),
         )
+
+    def sync_from_nessie(self, customer_id: str, nessie: NessieClient) -> CustomerRecord | None:
+        """Stands in for the database store: only a real client counts as a bank, as in production."""
+        if customer_id not in self._profiles:
+            return None
+        if not is_real(nessie):
+            raise NotConnected(customer_id)
+        nessie.get_accounts(customer_id)  # the same round trip the database store makes
+        self._synced[customer_id] = datetime.now(UTC)
+        return self.get_record(customer_id)
 
     def monthly_miles(self, customer_id: str) -> list[tuple[date, int]]:
         highest: dict[date, int] = {}
@@ -57,6 +72,14 @@ class InMemoryStore:
             highest[key] = max(highest.get(key, odometer), odometer)
         months = sorted(highest)
         return [(m, highest[m] - highest[prev]) for prev, m in zip(months, months[1:], strict=False)]
+
+    def monthly_payments(self, customer_id: str) -> list[tuple[date, Decimal, Decimal, Decimal]]:
+        """The payment history summed by UTC calendar month, as the monthly_payments aggregate does."""
+        totals: dict[date, tuple[Decimal, Decimal, Decimal]] = {}
+        for on, amount, principal, interest in payment_history(self._profiles[customer_id]):
+            a, pr, i = totals.get(_month(on), (Decimal(0), Decimal(0), Decimal(0)))
+            totals[_month(on)] = (a + amount, pr + principal, i + interest)
+        return [(m, *totals[m]) for m in sorted(totals)]
 
     def monthly_spend(self, customer_id: str) -> list[tuple[date, str, Decimal]]:
         totals: dict[tuple[date, str], Decimal] = {}

@@ -116,3 +116,12 @@ def test_every_flip_sentence_for_real_customers_passes_the_check(make_lease, mak
     for inp in (make_lease(), make_loan()):
         for f in find_flips(inp, cfg):
             assert template.flip_sentence(flip_facts(f, inp.customer.contract.type)) is not None
+
+
+def test_vague_plural_quantities_count_as_number_words_too():
+    texts = (
+        "You would save hundreds.", "Thousands in fees.", "Millions of options.", "A dozen reasons.", "Dozens of cars.",
+    )
+    for text in texts:
+        assert numcheck.check(text, []), text
+    assert not numcheck.check("You would save {savings_5yr}.", ["savings_5yr"])

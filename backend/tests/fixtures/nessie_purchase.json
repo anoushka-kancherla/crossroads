@@ -1,0 +1,11 @@
+{
+  "_id": "121ac411-9615-445e-b796-fe65e827bd24",
+  "type": "merchant",
+  "merchant_id": "43c9b9d0-7224-4a49-9e79-c4386d7baeb4",
+  "payer_id": "1fca94dc-809d-4a82-8bed-0a46a1c25fcb",
+  "purchase_date": "2026-07-26",
+  "amount": 477,
+  "status": "completed",
+  "medium": "balance",
+  "description": "groceries"
+}

@@ -16,9 +16,11 @@ from fastapi.responses import JSONResponse
 
 from ..adapters.dealers import DealerLookupError, DealersClient, SerpApiDealers
 from ..adapters.llm import LLMClient, make_llm
+from ..adapters.nessie import HttpNessie, NessieClient
 from ..config import Config, load_settings
 from ..db.repo import make_pool
 from ..explain.service import ExplainService
+from ..net import SlidingWindowLimiter
 from .routes import router
 from .store import CustomerStore, DbStore
 
@@ -35,6 +37,8 @@ def create_app(
     cfg: Config | None = None,
     llm: LLMClient | None = None,
     dealers: DealersClient | None = None,
+    nessie: NessieClient | None = None,
+    limiter: SlidingWindowLimiter | None = None,
 ) -> FastAPI:
     """The app. Without a `store` it reads the database named by DATABASE_URL and takes the model and
     the dealer search from the environment (none without a key); tests pass a store, and fakes."""
@@ -64,8 +68,13 @@ def create_app(
         llm = llm or make_llm(settings)
         if dealers is None and settings.serpapi_api_key:
             dealers = SerpApiDealers(settings.serpapi_api_key)
+        if nessie is None and settings.nessie_api_key:
+            nessie = HttpNessie(settings.nessie_api_key)
     app.state.explain = ExplainService(llm)
+    app.state.llm = llm
     app.state.dealers = dealers
+    app.state.nessie = nessie
+    app.state.limiter = limiter or SlidingWindowLimiter(limit=20, window=3600)
     app.include_router(router)
 
     @app.exception_handler(DealerLookupError)

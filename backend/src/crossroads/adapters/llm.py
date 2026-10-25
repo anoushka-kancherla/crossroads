@@ -18,18 +18,34 @@ class ExplanationDraft(BaseModel):
     explanation: str
 
 
+class AnswerDraft(BaseModel):
+    """The model's reply to a customer's question: text that refers to figures only through placeholders."""
+
+    answer: str
+
+
 class LLMClient(Protocol):
     def draft(self, prompt: str) -> ExplanationDraft: ...
 
+    def answer(self, prompt: str) -> AnswerDraft: ...
+
 
 class FakeLLM:
-    """Returns scripted drafts in order (an Exception in the script is raised), then repeats the
-    last one. Records every prompt in `prompts`."""
+    """Returns scripted drafts in order (an Exception in the script is raised), then repeats the last one.
+    Question answers have their own script (`answers`). Records every prompt in `prompts` and every
+    question prompt in `ask_prompts`."""
 
-    def __init__(self, script: list[ExplanationDraft | Exception]):
+    def __init__(
+        self,
+        script: list[ExplanationDraft | Exception],
+        answers: list[AnswerDraft | Exception] | None = None,
+    ):
         self._script = deque(script)
         self._last: ExplanationDraft | Exception | None = None
+        self._answers = deque(answers or [])
+        self._last_answer: AnswerDraft | Exception | None = None
         self.prompts: list[str] = []
+        self.ask_prompts: list[str] = []
 
     def draft(self, prompt: str) -> ExplanationDraft:
         self.prompts.append(prompt)
@@ -40,6 +56,16 @@ class FakeLLM:
         if isinstance(self._last, Exception):
             raise self._last
         return self._last
+
+    def answer(self, prompt: str) -> AnswerDraft:
+        self.ask_prompts.append(prompt)
+        if self._answers:
+            self._last_answer = self._answers.popleft()
+        if self._last_answer is None:
+            raise RuntimeError("FakeLLM has no scripted answer")
+        if isinstance(self._last_answer, Exception):
+            raise self._last_answer
+        return self._last_answer
 
 
 class GeminiClient:
@@ -54,7 +80,7 @@ class GeminiClient:
         self._client = genai.Client(api_key=api_key)
         self._model = model
 
-    def draft(self, prompt: str) -> ExplanationDraft:
+    def _generate(self, prompt: str, schema):
         from google.genai import types
 
         def ask(**extra):
@@ -62,7 +88,7 @@ class GeminiClient:
                 model=self._model,
                 contents=prompt,
                 config=types.GenerateContentConfig(
-                    response_mime_type="application/json", response_schema=ExplanationDraft, **extra
+                    response_mime_type="application/json", response_schema=schema, **extra
                 ),
             )
 
@@ -73,9 +99,15 @@ class GeminiClient:
         except Exception:  # noqa: BLE001 - the SDK's error types differ by version
             response = ask()
         parsed = getattr(response, "parsed", None)
-        if isinstance(parsed, ExplanationDraft):
+        if isinstance(parsed, schema):
             return parsed
-        return ExplanationDraft.model_validate_json(response.text)
+        return schema.model_validate_json(response.text)
+
+    def draft(self, prompt: str) -> ExplanationDraft:
+        return self._generate(prompt, ExplanationDraft)
+
+    def answer(self, prompt: str) -> AnswerDraft:
+        return self._generate(prompt, AnswerDraft)
 
 
 def make_llm(settings: Settings) -> LLMClient | None:

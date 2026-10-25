@@ -6,12 +6,16 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..adapters.dealers import DealersClient
+from ..adapters.nessie import NessieClient, NessieError
 from ..config import Config
 from ..engine.next_steps import NEXT_STEP_LABELS, next_step_of
+from ..engine.recommend import evaluate
 from ..engine.schemas import LEASE_PATHS, LOAN_PATHS, PATH_LABELS
+from ..explain.ask import answer_question
 from ..explain.service import ExplainService
+from ..net import client_ip
 from .dealers_service import nearby_dealers
-from .overview import build_overview, build_spending
+from .overview import build_overview, build_payments, build_spending, money_panel
 from .paths_service import (
     InvalidInput,
     apply_request,
@@ -19,8 +23,11 @@ from .paths_service import (
     build_paths_response,
     confirmation_text,
     default_inputs,
+    facts_for,
 )
 from .schemas import (
+    AskRequest,
+    AskResponse,
     CustomerListItem,
     DealerOut,
     DealersResponse,
@@ -30,9 +37,11 @@ from .schemas import (
     OverviewResponse,
     PathsRequest,
     PathsResponse,
+    PaymentsResponse,
     SpendingResponse,
+    SyncResponse,
 )
-from .store import CustomerRecord, CustomerStore
+from .store import CustomerRecord, CustomerStore, NotConnected
 
 router = APIRouter(prefix="/api")
 
@@ -51,6 +60,18 @@ def get_explain(request: Request) -> ExplainService:
 
 def get_dealers(request: Request) -> DealersClient | None:
     return request.app.state.dealers
+
+
+def enforce_limit(request: Request) -> None:
+    """One shared allowance per client address for the routes that call an outside service (the bank sync and
+    the question box), so neither can be used to run up calls (FR-039, FR-041)."""
+    wait = request.app.state.limiter.hit(client_ip(request))
+    if wait:
+        raise HTTPException(
+            status_code=429,
+            detail="You've made a lot of requests. Please try again later.",
+            headers={"Retry-After": str(wait)},
+        )
 
 
 def _record(store: CustomerStore, customer_id: str) -> CustomerRecord:
@@ -75,6 +96,13 @@ def overview(customer_id: str, store: CustomerStore = Depends(get_store), cfg: C
 def spending(customer_id: str, store: CustomerStore = Depends(get_store)):
     _record(store, customer_id)
     return build_spending(store.monthly_spend(customer_id))
+
+
+@router.get("/customers/{customer_id}/payments", response_model=PaymentsResponse)
+def payments(customer_id: str, store: CustomerStore = Depends(get_store)):
+    """Monthly payments split into principal and interest, from the monthly_payments aggregate (FR-040)."""
+    rec = _record(store, customer_id)
+    return build_payments(rec.contract.type, store.monthly_payments(customer_id))
 
 
 def _scenario_for(rec: CustomerRecord, body: PathsRequest | None, cfg: Config):
@@ -144,3 +172,62 @@ def explanation(
     number check; otherwise this returns the checked template."""
     _, inp = _scenario_for(_record(store, customer_id), body, cfg)
     return build_explanation(inp, cfg, explain)
+
+
+SYNC_UNAVAILABLE = "Your bank figures couldn't be refreshed right now."
+
+
+@router.post(
+    "/customers/{customer_id}/sync", response_model=SyncResponse, dependencies=[Depends(enforce_limit)]
+)
+def sync(
+    customer_id: str,
+    request: Request,
+    store: CustomerStore = Depends(get_store),
+    cfg: Config = Depends(get_cfg),
+):
+    """Re-read this one customer's bank figures from Nessie and return the refreshed money panel. When Nessie
+    is not set up or cannot be reached the panel keeps its last values and the message is plain (FR-039)."""
+    _record(store, customer_id)
+    nessie: NessieClient | None = request.app.state.nessie
+    if nessie is None:
+        raise HTTPException(status_code=503, detail=SYNC_UNAVAILABLE)
+    try:
+        rec = store.sync_from_nessie(customer_id, nessie)
+    except NotConnected:
+        raise HTTPException(
+            status_code=409, detail="This customer is demo data and is not connected to a bank."
+        ) from None
+    except NessieError:
+        raise HTTPException(status_code=503, detail=SYNC_UNAVAILABLE) from None
+    return SyncResponse(money=money_panel(_record_or_404(rec), cfg))
+
+
+def _record_or_404(rec: CustomerRecord | None) -> CustomerRecord:
+    if rec is None:
+        raise HTTPException(status_code=404, detail="We couldn't find that customer.")
+    return rec
+
+
+CANT_ANSWER = "I can't answer that reliably."
+
+
+@router.post(
+    "/customers/{customer_id}/ask", response_model=AskResponse, dependencies=[Depends(enforce_limit)]
+)
+def ask(
+    customer_id: str,
+    body: AskRequest,
+    request: Request,
+    store: CustomerStore = Depends(get_store),
+    cfg: Config = Depends(get_cfg),
+):
+    """Answer a question about this customer's options from the engine's facts only. The answer reaches the
+    customer only after the same number check as an explanation; otherwise there is no answer and no figure
+    from the model (FR-041). Stateless: nothing the customer sees is changed by asking."""
+    _, inp = _scenario_for(_record(store, customer_id), body, cfg)
+    facts, _variant = facts_for(inp, evaluate(inp, cfg), cfg)
+    text = answer_question(request.app.state.llm, body.question, facts)
+    if text is None:
+        return AskResponse(answer=None, verified=False, message=CANT_ANSWER)
+    return AskResponse(answer=text, verified=True, message=None)

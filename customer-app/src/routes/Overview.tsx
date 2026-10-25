@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -17,9 +17,15 @@ import {
 import { api, type Overview as OverviewData } from "../api/client";
 import { QueryState } from "../components/QueryState";
 import { useCustomer } from "../CustomerContext";
-import { count, dateLabel, money, monthLabel, plural } from "../format";
+import { count, dateLabel, dateTimeLabel, money, monthLabel, plural } from "../format";
 
-type View = "mileage" | "spending";
+type View = "mileage" | "spending" | "payments";
+const VIEW_LABEL: Record<View, string> = { mileage: "Mileage", spending: "Spending", payments: "Payments" };
+const VIEW_TITLE: Record<View, string> = {
+  mileage: "Mileage: actual and projected to contract end",
+  spending: "Spending by month",
+  payments: "Payments: principal and interest",
+};
 const COLORS = ["#1f6feb", "#d97706", "#059669", "#9333ea", "#dc2626"];
 
 export default function Overview() {
@@ -75,17 +81,19 @@ function OverviewBody({
       <div className="columns">
         <section className="panel" aria-labelledby="chart-title">
           <div className="panel-head">
-            <h2 id="chart-title">{view === "mileage" ? "Mileage: actual and projected to contract end" : "Spending by month"}</h2>
+            <h2 id="chart-title">{VIEW_TITLE[view]}</h2>
             <div role="radiogroup" aria-label="Chart">
-              {(["mileage", "spending"] as const).map((v) => (
+              {(["mileage", "spending", "payments"] as const).map((v) => (
                 <label key={v}>
                   <input type="radio" name="chart-view" checked={view === v} onChange={() => setView(v)} />{" "}
-                  {v === "mileage" ? "Mileage" : "Spending"}
+                  {VIEW_LABEL[v]}
                 </label>
               ))}
             </div>
           </div>
-          {view === "mileage" ? <MileageChart mileage={mileage} /> : <SpendingChart customerId={customerId} />}
+          {view === "mileage" && <MileageChart mileage={mileage} />}
+          {view === "spending" && <SpendingChart customerId={customerId} />}
+          {view === "payments" && <PaymentsChart customerId={customerId} />}
           <p className="note">
             {lease
               ? proj.overage_miles
@@ -101,6 +109,7 @@ function OverviewBody({
         <section className="panel" aria-labelledby="money-title">
           <h2 id="money-title">Your money picture</h2>
           <p className="basis">{bank.source_label}</p>
+          {bank.source === "nessie" && <SyncBank customerId={customerId} syncedAt={bank.synced_at} />}
           <dl className="rows">
             <Row label="Checking balance" value={money(bank.checking)} />
             <Row label="Savings balance" value={money(bank.savings)} />
@@ -123,6 +132,26 @@ function OverviewBody({
       <Link className="button" to="/paths">
         See my options
       </Link>
+    </div>
+  );
+}
+
+/** "Sync from my bank" (FR-039): re-reads this customer's figures from Nessie. If it fails, the panel keeps
+ *  its last values and says so in plain words. */
+function SyncBank({ customerId, syncedAt }: { customerId: string; syncedAt: string | null }) {
+  const qc = useQueryClient();
+  const sync = useMutation({
+    mutationFn: () => api.sync(customerId),
+    onSuccess: (r) =>
+      qc.setQueryData<OverviewData>(["overview", customerId], (o) => (o ? { ...o, money: r.money } : o)),
+  });
+  return (
+    <div className="sync">
+      <button className="secondary" onClick={() => sync.mutate()} disabled={sync.isPending}>
+        {sync.isPending ? "Syncing…" : "Sync from my bank"}
+      </button>{" "}
+      <span className="basis">{syncedAt ? `Last synced ${dateTimeLabel(syncedAt)}` : "Not synced yet"}</span>
+      {sync.isError && <p role="alert">{sync.error.message}</p>}
     </div>
   );
 }
@@ -185,6 +214,40 @@ function MileageChart({ mileage }: { mileage: OverviewData["mileage"] }) {
         </ResponsiveContainer>
       </div>
     </>
+  );
+}
+
+function PaymentsChart({ customerId }: { customerId: string }) {
+  const payments = useQuery({ queryKey: ["payments", customerId], queryFn: () => api.payments(customerId) });
+  return (
+    <QueryState
+      status={payments.status}
+      error={payments.error}
+      data={payments.data}
+      isEmpty={(d) => d.months.length === 0}
+      emptyMessage="No payments to show yet."
+    >
+      {(d) => {
+        const lease = d.kind === "lease";
+        // Charted as given by the server, never added up here.
+        const data = d.months.map((m) => ({ month: m.month, principal: Number(m.principal), interest: Number(m.interest) }));
+        return (
+          <div className="chart" aria-label="Monthly payments split into principal and interest">
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" tickFormatter={monthLabel} />
+                <YAxis />
+                <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
+                <Legend />
+                <Bar dataKey="principal" name={lease ? "Toward the car" : "Principal"} stackId="pay" fill={COLORS[0]} isAnimationActive={false} />
+                <Bar dataKey="interest" name={lease ? "Rent charge" : "Interest"} stackId="pay" fill={COLORS[1]} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      }}
+    </QueryState>
   );
 }
 

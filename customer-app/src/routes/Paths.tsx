@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api, type PathOption, type PathsResult } from "../api/client";
+import { AskBox } from "../components/AskBox";
 import { NextStep } from "../components/NextStep";
 import { QueryState } from "../components/QueryState";
 import { Sliders, type Values, valuesOf } from "../components/Sliders";
@@ -106,6 +107,8 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
         </p>
         <NextStep key={rec.path ?? "none"} customerId={customerId} path={rec.path} />
       </section>
+
+      <AskBox customerId={customerId} inputs={data.inputs_used} />
 
       <section className="panel" aria-labelledby="flips-title">
         <h2 id="flips-title">What would change this recommendation</h2>

@@ -1,0 +1,12 @@
+{
+  "last_name": "Johnson",
+  "first_name": "Danielle",
+  "_id": "76af83ab-e41e-4f68-8c5b-9258f2796cb7",
+  "address": {
+    "city": "Anytown",
+    "state": "TX",
+    "street_name": "Main St",
+    "street_number": "100",
+    "zip": "75024"
+  }
+}
