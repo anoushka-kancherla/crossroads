@@ -1,5 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { pathRoles, roleColor } from "../brand/chartColors";
+import { endLabel } from "../brand/chartLabels";
+import { CountUp } from "../brand/CountUp";
+import { StatusMessage } from "../brand/StatusMessage";
+import { useResort } from "../brand/useResort";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api, type PathOption, type PathsResult } from "../api/client";
 import { AskBox } from "../components/AskBox";
@@ -9,7 +14,6 @@ import { Sliders, type Values, valuesOf } from "../components/Sliders";
 import { useCustomer } from "../CustomerContext";
 import { money } from "../format";
 
-const COLORS = ["#1f6feb", "#d97706", "#059669", "#9333ea", "#dc2626"];
 const DEBOUNCE_MS = 250;
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -68,7 +72,11 @@ function PathsScreen({ customerId }: { customerId: string }) {
         />
       </aside>
       <div className="paths-main">
-        {paths.isError && <p role="alert">{paths.error.message}</p>}
+        {paths.isError && (
+          <StatusMessage variant="critical" label="Error">
+            {paths.error.message}
+          </StatusMessage>
+        )}
         <PathsBody data={shown} customerId={customerId} />
       </div>
     </div>
@@ -90,28 +98,40 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
   const explanation = model.data && model.data.source === "gemini" && model.data.verified ? model.data : rec.explanation;
 
   const byCost = [...data.options].sort((a, b) => Number(a.five_year_cost) - Number(b.five_year_cost));
+  const cardsRef = useResort<HTMLDivElement>(byCost.map((o) => o.path).join(","));
 
   return (
     <div className="paths">
       <section className="panel recommend" aria-labelledby="rec-title">
-        <p className="eyebrow">{best ? "Recommended next move" : "No path fits yet"}</p>
+        <div className="recommend-head">
+          <p className="eyebrow">{best ? "Recommended next move" : "No path fits yet"}</p>
+          {explanation.verified && <StatusMessage variant="positive" label="Numbers verified" />}
+        </div>
         <h1 id="rec-title">{explanation.headline}</h1>
+        {best && (
+          <p className="hero-row">
+            <CountUp className="hero" value={money(best.five_year_cost)} />
+            <span className="basis">5-year cost</span>
+          </p>
+        )}
         <p>{explanation.text}</p>
-        <p className="basis">
-          {explanation.verified && <span className="badge">Numbers verified</span>}{" "}
-          {best && (
-            <span>
-              Fits your budget: {money(best.monthly_payment)} a month, {money(rec.monthly_room_left)} room left
-            </span>
-          )}
-        </p>
+        {best && (
+          <p className="basis">
+            Fits your budget: {money(best.monthly_payment)} a month, {money(rec.monthly_room_left)} room left
+          </p>
+        )}
         <NextStep key={rec.path ?? "none"} customerId={customerId} path={rec.path} />
       </section>
 
       <AskBox customerId={customerId} inputs={data.inputs_used} />
 
-      <section className="panel" aria-labelledby="flips-title">
-        <h2 id="flips-title">What would change this recommendation</h2>
+      <section className="panel flips-band" aria-labelledby="flips-title">
+        <h2 id="flips-title">
+          <svg className="info-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 3a9 9 0 100 18 9 9 0 000-18zM12 11v6M12 7.5v.5" />
+          </svg>
+          What would change this recommendation
+        </h2>
         {best === undefined ? (
           <p>There is no recommendation yet. Each path below shows what is holding it back.</p>
         ) : data.flips.length === 0 ? (
@@ -130,7 +150,7 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
           <h2 id="all-title">All your paths</h2>
           <span className="basis">Sorted by 5-year cost</span>
         </div>
-        <div className="cards">
+        <div className="cards" ref={cardsRef}>
           {byCost.map((o) => (
             <PathCard key={o.path} option={o} recommended={o.path === rec.path} closest={o.path === rec.closest_when_none} />
           ))}
@@ -144,7 +164,7 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
       </section>
 
       <section className="panel" aria-labelledby="assumptions-title">
-        <h2 id="assumptions-title">Assumptions behind these numbers</h2>
+        <h2 id="assumptions-title">Illustrative assumptions</h2>
         <ul className="assumptions">
           {data.assumptions.map((a) => (
             <li key={a}>{a}</li>
@@ -158,7 +178,7 @@ function PathsBody({ data, customerId }: { data: PathsResult; customerId: string
 function PathCard({ option: o, recommended, closest }: { option: PathOption; recommended: boolean; closest: boolean }) {
   const classes = ["card", recommended ? "card-recommended" : "", o.eligible ? "" : "card-ineligible"].join(" ");
   return (
-    <article className={classes} aria-label={o.label}>
+    <article className={classes} aria-label={o.label} data-resort-key={o.path}>
       <header>
         <h3>{o.label}</h3>
         {recommended && <span className="tag">Recommended</span>}
@@ -166,24 +186,30 @@ function PathCard({ option: o, recommended, closest }: { option: PathOption; rec
         {!o.eligible && <span className="tag">Not eligible</span>}
       </header>
       <dl className="rows">
-        <Row label="5-year cost" value={money(o.five_year_cost)} />
+        <Row label="5-year cost" value={<CountUp value={money(o.five_year_cost)} />} />
         <Row label="Monthly" value={money(o.monthly_payment)} />
         <Row label="Upfront" value={money(o.upfront_cost)} />
       </dl>
       <p className="basis">{o.tradeoff}</p>
-      {!o.eligible && o.ineligible_reason && <p className="why">{o.ineligible_reason}</p>}
+      {!o.eligible && o.ineligible_reason && (
+        <StatusMessage variant="warning" label="Unavailable">
+          {o.ineligible_reason}
+        </StatusMessage>
+      )}
       {o.eligible && !o.affordable && (
-        <ul className="why">
-          {o.shortfalls.map((s) => (
-            <li key={s.kind}>{s.text}</li>
-          ))}
-        </ul>
+        <StatusMessage variant="warning" label="Shortfall">
+          <ul className="why">
+            {o.shortfalls.map((s) => (
+              <li key={s.kind}>{s.text}</li>
+            ))}
+          </ul>
+        </StatusMessage>
       )}
     </article>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="row">
       <dt>{label}</dt>
@@ -201,11 +227,26 @@ function CostChart({ options, recommended }: { options: PathOption[]; recommende
     for (const o of shown) row[o.path] = Number(o.cumulative_cost[i]); // charted as given, never added up here
     return row;
   });
+  const roles = pathRoles(shown.map((o) => o.path), recommended);
+  // Label a line at its end only where it will not sit on top of another label; the legend names every line.
+  const top = Math.max(...shown.map((o) => Number(o.cumulative_cost[months - 1])));
+  const labelled = new Set<string>();
+  const taken: number[] = [];
+  const byPriority = [...shown].sort(
+    (a, b) => Number(b.path === recommended) - Number(a.path === recommended) || Number(b.cumulative_cost[months - 1]) - Number(a.cumulative_cost[months - 1]),
+  );
+  for (const o of byPriority) {
+    const end = Number(o.cumulative_cost[months - 1]);
+    if (taken.every((t) => Math.abs(t - end) / top > 0.08)) {
+      labelled.add(o.path);
+      taken.push(end);
+    }
+  }
   return (
     <div className="chart" aria-label="Cumulative cost by path over 60 months">
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={rows}>
-          <CartesianGrid strokeDasharray="3 3" />
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={rows} margin={{ right: 170 }}>
+          <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
           <XAxis
             dataKey="month"
             ticks={[1, 12, 24, 36, 48, 60]}
@@ -215,16 +256,17 @@ function CostChart({ options, recommended }: { options: PathOption[]; recommende
           <YAxis tickFormatter={(v) => money(String(v))} width={80} />
           <Tooltip formatter={(v) => money(String(v))} labelFormatter={(m) => `Month ${m}`} />
           <Legend verticalAlign="top" />
-          {shown.map((o, i) => (
+          {shown.map((o) => (
             <Line
               key={o.path}
               type="monotone"
               dataKey={o.path}
               name={o.label}
-              stroke={COLORS[i % COLORS.length]}
-              strokeWidth={o.path === recommended ? 4 : 1.5}
+              stroke={roleColor(roles[o.path])}
+              strokeWidth={o.path === recommended ? 4 : 2}
               dot={false}
               isAnimationActive={false}
+              label={labelled.has(o.path) ? endLabel(o.label, months - 1) : undefined}
             />
           ))}
         </LineChart>

@@ -150,7 +150,7 @@ describe("fairness page content", () => {
     const verdict = await screen.findByRole("region", { name: "Verdict" });
     expect(within(verdict).getByRole("heading")).toHaveTextContent("Possible steering, to be reviewed");
     expect(verdict).toHaveTextContent("The data cannot confirm the gap is beyond the 15-point threshold.");
-    expect(verdict.className).toBe("verdict"); // the same panel as a favourable verdict
+    expect(verdict).toHaveClass("verdict"); // the same panel as a favourable verdict
   });
 
   it("says which kind of population it covers", async () => {

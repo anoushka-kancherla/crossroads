@@ -1,0 +1,105 @@
+/* Mirrors docs/brand.md. Edit both together. */
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Inter:wght@500;600&display=swap");
+
+:root {
+  /* Surfaces */
+  --color-bg: #FFFFFF;
+  --color-surface-green: #F1F6F3;
+  --color-surface-grey: #F4F5F6;
+  --color-surface-blue: #EAF2F8;
+
+  /* Text */
+  --color-text: #14231D;
+  --color-text-muted: #4F5E57;
+
+  /* Brand */
+  --color-primary: #0F4D3A;
+  --color-primary-hover: #0A3A2B;
+  --color-on-primary: #FFFFFF;
+  --color-accent-blue: #1F5F8B;
+  --color-accent-grey: #5F6B73;
+
+  /* Lines */
+  --color-border: #DCE5E0;
+  --color-border-strong: #879690;
+  --color-focus: #1F5F8B;
+
+  /* Status: foreground / background */
+  --color-positive: #0F4D3A;
+  --color-positive-bg: #F1F6F3;
+  --color-warning: #8A5300;
+  --color-warning-bg: #FBF1DE;
+  --color-critical: #A3292B;
+  --color-critical-bg: #FBE9E9;
+  --color-neutral: #5F6B73;
+  --color-neutral-bg: #F4F5F6;
+
+  /* Charts (categorical, fixed meaning) */
+  --chart-green: #1B7A57;   /* recommended path, actual data */
+  --chart-blue: #3A85C9;    /* main alternative, projections */
+  --chart-grey: #7F8A92;    /* baseline: keep as is, allowances */
+  --chart-purple: #4E2F86;  /* fourth series */
+  --chart-grid: #DCE5E0;
+  --chart-axis-text: #4F5E57;
+  /* Sequential (low to high) */
+  --chart-seq-1: #CFE3D9;
+  --chart-seq-2: #7FB39C;
+  --chart-seq-3: #2F7A5C;
+  --chart-seq-4: #0F4D3A;
+
+  /* Type */
+  --font-ui: "Lexend", system-ui, sans-serif;
+  --font-numbers: "Inter", system-ui, sans-serif;
+  --text-hero: 46px;
+  --text-h1: 32px;
+  --text-h2: 24px;
+  --text-h3: 18px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-caption: 12px;
+
+  /* Space and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-pill: 9999px;
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --control-height: 48px;
+  --content-max: 1200px;
+
+  /* Motion */
+  --motion-count: 300ms;
+  --motion-resort: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-count: 0ms;
+    --motion-resort: 0ms;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.num {
+  font-family: var(--font-numbers);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import { api } from "./api/client";
+import { LogoSlot } from "./brand/LogoSlot";
 import { QueryState } from "./components/QueryState";
 import Fairness from "./routes/Fairness";
 import Login from "./routes/Login";
@@ -24,18 +25,21 @@ export default function App() {
   return (
     <>
       <header className="topbar">
-        <div>
-          <strong>Crossroads Internal</strong>
-          <div className="brand-sub">Toyota Financial Services · staff only</div>
+        <LogoSlot />
+        <div className="brand-block">
+          <div className="brand">Crossroads Internal</div>
+          <div className="brand-sub">Toyota Financial Services</div>
         </div>
-        {user && (
+        <span className="staff-badge">Staff only</span>
+        {user ? (
           <nav aria-label="Main">
             <NavLink to="/" end>
               Portfolio
             </NavLink>
             <NavLink to="/fairness">Fairness</NavLink>
           </nav>
-        )}
+        ) : null}
+        <span className="topbar-spacer" />
         {user && (
           <div className="who">
             <span>Signed in as {user}</span>

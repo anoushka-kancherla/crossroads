@@ -410,7 +410,7 @@ describe("Your paths assumptions", () => {
   it("shows the illustrative values behind the numbers", async () => {
     stubFetch(serve(result()));
     renderPaths();
-    const section = await screen.findByRole("region", { name: "Assumptions behind these numbers" });
+    const section = await screen.findByRole("region", { name: "Illustrative assumptions" });
     expect(within(section).getByText(/\$450 a month with \$3,000 due at signing \(illustrative\)/)).toBeInTheDocument();
   });
 });

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { roleColor } from "../brand/chartColors";
+import { StatusMessage } from "../brand/StatusMessage";
 import { UnauthorizedError, api, type Portfolio as PortfolioData } from "../api/client";
 import { QueryState } from "../components/QueryState";
 import { count, dateLabel, money } from "../format";
@@ -32,7 +34,11 @@ export default function Portfolio() {
         <button className="secondary" onClick={() => refresh.mutate()} disabled={refresh.isPending}>
           {refresh.isPending ? "Refreshing…" : "Refresh"}
         </button>
-        {refresh.isError && <span role="alert">{refresh.error.message}</span>}
+        {refresh.isError && (
+          <StatusMessage variant="critical" label="Error">
+            {refresh.error.message}
+          </StatusMessage>
+        )}
       </div>
       <QueryState
         status={portfolio.status}
@@ -74,19 +80,24 @@ function Dashboard({ data }: { data: PortfolioData }) {
       <div className="columns">
         <section className="panel" aria-label="Recommended path mix">
           <h2>Recommended path mix</h2>
-          <div className="chart">
-            <ResponsiveContainer width="100%" height={280}>
+          <div className="chart chart-tall">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.by_path} layout="vertical" margin={{ left: 24 }}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis type="category" dataKey="label" width={130} />
                 <Tooltip />
-                <Bar dataKey="customers" name="Customers" fill="#444" />
+                <Bar dataKey="customers" name="Customers" fill={roleColor("actual")} isAnimationActive={false}>
+                  {data.by_path.map((row) => (
+                    // Paths where the customer leaves Toyota are grey; the counts are also in the table beside it.
+                    <Cell key={row.path} fill={row.stays_with_toyota ? roleColor("actual") : roleColor("baseline")} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </section>
-        <section className="panel" aria-label="Value by path">
+        <section className="panel panel-table" aria-label="Value by path">
           <h2>Value by path</h2>
           <table>
             <thead>
@@ -103,7 +114,9 @@ function Dashboard({ data }: { data: PortfolioData }) {
                 <tr key={row.path}>
                   <td>{row.label}</td>
                   <td className="num">{count(row.customers)}</td>
-                  <td>{row.stays_label}</td>
+                  <td>
+                    <span className={row.stays_with_toyota ? "pill" : "pill pill-no"}>{row.stays_label}</span>
+                  </td>
                   <td>{row.next_step_label}</td>
                   <td className="num">{money(row.revenue)}</td>
                 </tr>
@@ -118,6 +131,7 @@ function Dashboard({ data }: { data: PortfolioData }) {
           )}
         </section>
       </div>
+      <p className="assumptions-label">Illustrative assumptions</p>
       <ul className="assumptions" aria-label="Assumptions">
         {data.assumptions.map((a) => (
           <li key={a}>{a}</li>

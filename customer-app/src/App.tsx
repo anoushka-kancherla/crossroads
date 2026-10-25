@@ -1,4 +1,5 @@
 import { NavLink, Route, Routes } from "react-router-dom";
+import { LogoSlot } from "./brand/LogoSlot";
 import { CustomerPicker } from "./components/CustomerPicker";
 import { CustomerProvider } from "./CustomerContext";
 import Overview from "./routes/Overview";
@@ -9,7 +10,8 @@ export default function App() {
   return (
     <CustomerProvider>
       <header className="topbar">
-        <strong>Crossroads</strong>
+        <LogoSlot />
+        <strong className="brand">Crossroads</strong>
         <nav>
           <NavLink to="/" end>
             Customer

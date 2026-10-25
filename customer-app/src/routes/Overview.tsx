@@ -15,6 +15,9 @@ import {
   YAxis,
 } from "recharts";
 import { api, type Overview as OverviewData } from "../api/client";
+import { endLabel } from "../brand/chartLabels";
+import { StatusMessage } from "../brand/StatusMessage";
+import { PROJECTION_DASH, SEQUENTIAL, roleColor } from "../brand/chartColors";
 import { QueryState } from "../components/QueryState";
 import { useCustomer } from "../CustomerContext";
 import { count, dateLabel, dateTimeLabel, money, monthLabel, plural } from "../format";
@@ -26,7 +29,6 @@ const VIEW_TITLE: Record<View, string> = {
   spending: "Spending by month",
   payments: "Payments: principal and interest",
 };
-const COLORS = ["#1f6feb", "#d97706", "#059669", "#9333ea", "#dc2626"];
 
 export default function Overview() {
   const { customerId } = useCustomer();
@@ -94,13 +96,19 @@ function OverviewBody({
           {view === "mileage" && <MileageChart mileage={mileage} />}
           {view === "spending" && <SpendingChart customerId={customerId} />}
           {view === "payments" && <PaymentsChart customerId={customerId} />}
-          <p className="note">
-            {lease
-              ? proj.overage_miles
-                ? `Projection: ${count(proj.overage_miles)} miles over allowance at lease end, about ${money(proj.overage_fee ?? "0")} in fees`
-                : "Projection: you are within your mileage allowance at lease end."
-              : "Projection: there is no mileage allowance on a loan, so no overage fees."}
-          </p>
+          {lease && proj.overage_miles ? (
+            <StatusMessage variant="warning" label="Over your allowance">
+              {`Projection: ${count(proj.overage_miles)} miles over allowance at lease end, about ${money(proj.overage_fee ?? "0")} in fees`}
+            </StatusMessage>
+          ) : lease ? (
+            <StatusMessage variant="positive" label="Within your allowance">
+              Projection: you are within your mileage allowance at lease end.
+            </StatusMessage>
+          ) : (
+            <StatusMessage variant="neutral" label="No allowance">
+              Projection: there is no mileage allowance on a loan, so no overage fees.
+            </StatusMessage>
+          )}
           <p className="basis">
             {count(proj.rate_per_year)} miles a year. {proj.basis_label}.
           </p>
@@ -129,7 +137,7 @@ function OverviewBody({
         </section>
       </div>
 
-      <Link className="button" to="/paths">
+      <Link className="button primary" to="/paths">
         See my options
       </Link>
     </div>
@@ -151,7 +159,11 @@ function SyncBank({ customerId, syncedAt }: { customerId: string; syncedAt: stri
         {sync.isPending ? "Syncing…" : "Sync from my bank"}
       </button>{" "}
       <span className="basis">{syncedAt ? `Last synced ${dateTimeLabel(syncedAt)}` : "Not synced yet"}</span>
-      {sync.isError && <p role="alert">{sync.error.message}</p>}
+      {sync.isError && (
+        <StatusMessage variant="critical" label="Error">
+          {sync.error.message}
+        </StatusMessage>
+      )}
     </div>
   );
 }
@@ -188,28 +200,51 @@ function MileageChart({ mileage }: { mileage: OverviewData["mileage"] }) {
   return (
     <>
       {actual.length === 0 && (
-        <p role="note">No odometer history yet, so only the projection is shown. {mileage.projection.basis_label}.</p>
+        <div role="note">
+          <StatusMessage variant="neutral" label="Unavailable">
+            No odometer history yet, so only the projection is shown. {mileage.projection.basis_label}.
+          </StatusMessage>
+        </div>
       )}
       <div className="chart" aria-label="Monthly miles, actual and projected">
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={monthLabel} />
             <YAxis />
             <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
             <Legend />
-            <Line type="monotone" dataKey="actual" name="Actual miles" stroke={COLORS[0]} dot={false} connectNulls isAnimationActive={false} />
+            <Line
+              type="monotone"
+              dataKey="actual"
+              name="Actual miles"
+              stroke={roleColor("actual")}
+              strokeWidth={3}
+              dot={false}
+              connectNulls
+              isAnimationActive={false}
+              label={endLabel("Actual", data.map((r) => r.actual !== undefined).lastIndexOf(true))}
+            />
             <Line
               type="monotone"
               dataKey="projected"
               name="Projected miles"
-              stroke={COLORS[0]}
-              strokeDasharray="6 4"
+              stroke={roleColor("actual")}
+              strokeWidth={3}
+              strokeDasharray={PROJECTION_DASH}
               dot={false}
               connectNulls
               isAnimationActive={false}
+              label={endLabel("Projected", data.length - 1)}
             />
-            {allowance !== null && <ReferenceLine y={allowance} stroke={COLORS[4]} strokeDasharray="4 4" label="Allowance" />}
+            {allowance !== null && (
+              <ReferenceLine
+                y={allowance}
+                stroke={roleColor("baseline")}
+                strokeWidth={2}
+                label={{ value: "Allowance", position: "insideTopLeft", className: "end-label" }}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -233,15 +268,15 @@ function PaymentsChart({ customerId }: { customerId: string }) {
         const data = d.months.map((m) => ({ month: m.month, principal: Number(m.principal), interest: Number(m.interest) }));
         return (
           <div className="chart" aria-label="Monthly payments split into principal and interest">
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickFormatter={monthLabel} />
                 <YAxis />
                 <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
                 <Legend />
-                <Bar dataKey="principal" name={lease ? "Toward the car" : "Principal"} stackId="pay" fill={COLORS[0]} isAnimationActive={false} />
-                <Bar dataKey="interest" name={lease ? "Rent charge" : "Interest"} stackId="pay" fill={COLORS[1]} isAnimationActive={false} />
+                <Bar dataKey="principal" name={lease ? "Toward the car" : "Principal"} stackId="pay" fill={roleColor("actual")} isAnimationActive={false} />
+                <Bar dataKey="interest" name={lease ? "Rent charge" : "Interest"} stackId="pay" fill={roleColor("alternative")} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -272,15 +307,15 @@ function SpendingChart({ customerId }: { customerId: string }) {
         const data = [...byMonth.values()].sort((a, b) => String(a.month).localeCompare(String(b.month)));
         return (
           <div className="chart" aria-label="Spending by month and category">
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickFormatter={monthLabel} />
                 <YAxis />
                 <Tooltip labelFormatter={(m) => monthLabel(String(m))} />
                 <Legend />
                 {categories.map((c, i) => (
-                  <Bar key={c} dataKey={c} stackId="spend" fill={COLORS[i % COLORS.length]} isAnimationActive={false} />
+                  <Bar key={c} dataKey={c} stackId="spend" fill={SEQUENTIAL[i % SEQUENTIAL.length]} isAnimationActive={false} />
                 ))}
               </BarChart>
             </ResponsiveContainer>

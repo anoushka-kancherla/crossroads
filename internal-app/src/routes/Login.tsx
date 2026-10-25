@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { api } from "../api/client";
+import { LogoSlot } from "../brand/LogoSlot";
+import { StatusMessage } from "../brand/StatusMessage";
 
 /** Staff sign-in. A failed attempt shows one generic message, whatever was wrong (FR-025). */
 export default function Login() {
@@ -20,7 +22,9 @@ export default function Login() {
   };
 
   return (
+    <div className="login-page">
     <form className="login" onSubmit={submit} aria-label="Staff sign-in">
+      <LogoSlot size="card" />
       <h1>Staff sign-in</h1>
       <label>
         Username
@@ -36,10 +40,15 @@ export default function Login() {
           required
         />
       </label>
-      {signIn.isError && <p role="alert">{signIn.error.message}</p>}
+      {signIn.isError && (
+        <StatusMessage variant="critical" label="Error">
+          {signIn.error.message}
+        </StatusMessage>
+      )}
       <button className="primary" type="submit" disabled={signIn.isPending}>
         {signIn.isPending ? "Signing in…" : "Sign in"}
       </button>
     </form>
+    </div>
   );
 }

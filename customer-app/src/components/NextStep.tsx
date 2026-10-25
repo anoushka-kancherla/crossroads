@@ -1,3 +1,4 @@
+import { StatusMessage } from "../brand/StatusMessage";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api, type NextStepRequest } from "../api/client";
 import { QueryState } from "./QueryState";
@@ -47,7 +48,11 @@ export function NextStep({ customerId, path }: Props) {
 
       <div aria-live="polite">
         {step.isPending && <p role="status">Sending…</p>}
-        {step.isError && <p role="alert">{step.error.message}</p>}
+        {step.isError && (
+          <StatusMessage variant="critical" label="Error">
+            {step.error.message}
+          </StatusMessage>
+        )}
         {step.isSuccess && (
           <>
             <p className="confirmation">{step.data.confirmation}</p>

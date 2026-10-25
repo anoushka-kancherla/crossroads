@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { StatusMessage } from "../brand/StatusMessage";
 
 type Props<T> = {
   status: "pending" | "error" | "success";
@@ -24,7 +25,11 @@ export function QueryState<T>({
   if (status === "error") {
     // Show a readable message, never a stack trace or a raw response.
     const message = error instanceof Error && error.message ? error.message : "Something went wrong. Please try again.";
-    return <p role="alert">{message}</p>;
+    return (
+      <StatusMessage variant="critical" label="Error">
+        {message}
+      </StatusMessage>
+    );
   }
   if (data === undefined || (isEmpty?.(data) ?? false)) return <p>{emptyMessage}</p>;
   return <>{children(data)}</>;

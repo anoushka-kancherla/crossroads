@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { PROJECTION_DASH, SEQUENTIAL, roleColor } from "../brand/chartColors";
 import { UnauthorizedError, api, type FairnessReport } from "../api/client";
+import { StatusMessage } from "../brand/StatusMessage";
 import { QueryState } from "../components/QueryState";
 import { count, dateLabel, money } from "../format";
 
@@ -9,6 +11,12 @@ const HEADLINES = {
   no_evidence: "No evidence of steering",
   possible_steering: "Possible steering, to be reviewed",
   not_enough: "Not enough customers to tell",
+} as const;
+
+const STATUS = {
+  no_evidence: { variant: "positive", label: "No evidence found" },
+  possible_steering: { variant: "warning", label: "To review" },
+  not_enough: { variant: "neutral", label: "Not enough data" },
 } as const;
 
 const TYPE_LABELS = { loan: "Loan customers", lease: "Lease customers" } as const;
@@ -20,7 +28,11 @@ const points = (v: string | null) => (v === null ? "not enough customers" : `${v
 const SEPARATE = "A separate matter from steering; not part of the verdict";
 
 /** What to show where a band has no figure: no customers at all, or too few with a recommendation or a choice. */
-const unavailable = (b: Band) => (b.customers === 0 ? "No customers" : "Not enough customers");
+const unavailable = (b: Band) => (
+  <StatusMessage variant="neutral" label="Not enough data">
+    {b.customers === 0 ? "No customers" : "Not enough customers"}
+  </StatusMessage>
+);
 
 /** The fairness check (feature 002): band-level figures on a separate synthetic population. Every figure
  *  and sentence comes from the server; nothing here is computed or softened. */
@@ -60,7 +72,7 @@ function Report({ data }: { data: FairnessReport }) {
         {dateLabel(data.computed_at)}
       </p>
       {data.verdict && <VerdictPanel verdict={data.verdict} />}
-      <section className="panel" aria-label="Income bands">
+      <section className="panel panel-table" aria-label="Income bands">
         <h2>Recommendations by income band</h2>
         <table>
           <thead>
@@ -95,20 +107,33 @@ function Report({ data }: { data: FairnessReport }) {
           Toyota's 5-year interest income. 0% is the least profitable option, 100% the most, 50% is neutral.
         </p>
         <div className="chart" aria-label="Average profitability rank by band">
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.bands.map((b) => ({ band: b.label, rank: b.avg_rank_pct === null ? 0 : Number(b.avg_rank_pct) }))}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid stroke={roleColor("grid")} strokeDasharray="3 3" />
               <XAxis dataKey="band" />
               <YAxis domain={[0, 100]} unit="%" />
               <Tooltip />
-              <ReferenceLine y={50} stroke="#111" strokeDasharray="6 3" label="Neutral 50%" />
-              <Bar dataKey="rank" name="Average rank" fill="#444" />
+              <ReferenceLine
+                y={50}
+                stroke={roleColor("baseline")}
+                strokeWidth={2}
+                strokeDasharray={PROJECTION_DASH}
+                label={{ value: "Neutral 50%", position: "insideTopLeft", className: "end-label" }}
+              />
+              <Bar dataKey="rank" name="Average rank" isAnimationActive={false}>
+                {data.bands.map((b, i) => (
+                  // Income bands low to high use the brand's sequential scale; each value is also in the table above.
+                  <Cell key={b.key} fill={SEQUENTIAL[Math.min(i + 1, SEQUENTIAL.length - 1)]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
         <div className="warning" role="note">
-          Results on a small band are uncertain. The number of customers behind every average and share is shown
-          beside it.
+          <StatusMessage variant="warning" label="Small bands are uncertain">
+            Results on a small band are uncertain. The number of customers behind every average and share is shown
+            beside it.
+          </StatusMessage>
         </div>
       </section>
       <Evidence bands={data.bands} />
@@ -120,7 +145,8 @@ function Report({ data }: { data: FairnessReport }) {
 
 function VerdictPanel({ verdict }: { verdict: NonNullable<FairnessReport["verdict"]> }) {
   return (
-    <section className="verdict" aria-label="Verdict">
+    <section className={`verdict verdict-${STATUS[verdict.outcome].variant}`} aria-label="Verdict">
+      <StatusMessage variant={STATUS[verdict.outcome].variant} label={STATUS[verdict.outcome].label} />
       <h2>{HEADLINES[verdict.outcome]}</h2>
       <p>{verdict.sentence}</p>
       {verdict.interval_note && <p>{verdict.interval_note}</p>}
@@ -137,7 +163,7 @@ function VerdictPanel({ verdict }: { verdict: NonNullable<FairnessReport["verdic
 
 function Evidence({ bands }: { bands: Band[] }) {
   return (
-    <section className="panel" aria-label="Evidence">
+    <section className="panel panel-table" aria-label="Evidence">
       <h2>The evidence behind it</h2>
       <table>
         <thead>
@@ -196,7 +222,7 @@ function Evidence({ bands }: { bands: Band[] }) {
 
 function PerType({ data }: { data: FairnessReport }) {
   return (
-    <section className="panel" aria-label="Loan and lease">
+    <section className="panel panel-table" aria-label="Loan and lease">
       <h2>The same gap for loan and lease customers</h2>
       <p className="note">
         Evidence only, not scored: these do not change the verdict above. They show whether a gap sits in one kind of
@@ -215,7 +241,15 @@ function PerType({ data }: { data: FairnessReport }) {
           {data.by_type.map((g) => (
             <tr key={g.scope}>
               <td>{TYPE_LABELS[g.scope]}</td>
-              <td className="num">{g.enough ? points(g.gap_points) : "Not enough customers"}</td>
+              <td className="num">
+                {g.enough ? (
+                  points(g.gap_points)
+                ) : (
+                  <StatusMessage variant="neutral" label="Not enough data">
+                    Not enough customers
+                  </StatusMessage>
+                )}
+              </td>
               <td>{g.enough ? `${g.ci_low} to ${g.ci_high}` : "none"}</td>
               <td className="num">
                 {count(g.lowest_n)} and {count(g.highest_n)}

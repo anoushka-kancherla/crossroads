@@ -65,3 +65,7 @@ Figures below were measured on a live run (24 Oct 2026), not estimated.
 | `customer-app/`, `internal-app/` | the two React apps |
 | `deploy/`, `docker-compose.prod.yml` | production front door (Caddy, TLS) |
 | `specs/001-crossroads-path-advisor/` | spec, plan, tasks, contracts, quickstart |
+
+## Brand
+
+Both apps use one set of brand tokens (colours, fonts, sizes, spacing, radii, chart colours, motion) from `branding/tokens.css`. Edit that file, then run `scripts/sync-tokens.sh` to copy it into both apps (each builds from its own folder in Docker). `backend/tests/api/test_brand_tokens.py` fails if either copy differs or if any stylesheet or component hard-codes a colour, font, size, spacing, radius, shadow or gradient. Put a logo in either header and on the staff sign-in card by setting `CUSTOMER_LOGO_URL` or `INTERNAL_LOGO_URL` in `.env` (an image address, not a secret) and rebuilding; with none set a same-size placeholder is shown.

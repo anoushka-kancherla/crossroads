@@ -1,3 +1,4 @@
+import { StatusMessage } from "../brand/StatusMessage";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { api, type PathsInputs } from "../api/client";
@@ -46,18 +47,26 @@ export function AskBox({ customerId, inputs }: Props) {
       </form>
       <div aria-live="polite">
         {ask.isPending && <p role="status">Thinking…</p>}
-        {ask.isError && <p role="alert">{ask.error.message}</p>}
+        {ask.isError && (
+          <StatusMessage variant="critical" label="Error">
+            {ask.error.message}
+          </StatusMessage>
+        )}
         {ask.isSuccess &&
           (ask.data.answer ? (
             <>
               <p className="answer">{ask.data.answer}</p>
               <p className="basis">
-                <span className="badge">Numbers verified</span>{" "}
+                <StatusMessage variant="positive" label="Numbers verified" />{" "}
                 {answeredFor !== settings && "This answer was for your earlier slider settings."}
               </p>
             </>
           ) : (
-            <p role="status">{ask.data.message ?? "I can't answer that reliably."}</p>
+            <div role="status">
+              <StatusMessage variant="neutral" label="No answer">
+                {ask.data.message ?? "I can't answer that reliably."}
+              </StatusMessage>
+            </div>
           ))}
       </div>
     </section>
