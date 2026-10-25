@@ -17,8 +17,9 @@ from ..engine.money import fmt_money
 from ..engine.recommend import evaluate
 from ..engine.schemas import PATH_LABELS, SLIDERS, Customer, EngineInputs, Evaluation
 from ..explain import template
-from ..explain.facts import build_facts, flip_facts
+from ..explain.facts import build_facts, flip_facts, fmt_years
 from ..explain.service import ExplainService, Explanation
+from ..explain.why_not import why_not_line
 from .overview import market_value_of, projection_of
 from .schemas import (
     ExplanationOut,
@@ -159,6 +160,7 @@ def build_paths_response(
                 affordable=o.affordable,
                 shortfalls=[ShortfallOut(**s.model_dump()) for s in o.shortfalls],
                 tradeoff=template.TRADEOFFS[o.path],
+                why_not=why_not_line(o, by.get(rec.path) if rec.path else None, fmt_years(cfg.horizon_months // 12)),
                 cumulative_cost=o.cumulative_cost,
             )
             for o in ev.options

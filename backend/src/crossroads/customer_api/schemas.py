@@ -174,6 +174,7 @@ class OptionOut(BaseModel):
     affordable: bool
     shortfalls: list[ShortfallOut]
     tradeoff: str
+    why_not: str | None = None  # why this path lost to the recommendation; null for the recommended path
     cumulative_cost: list[Decimal]  # months 1 to 60
 
 

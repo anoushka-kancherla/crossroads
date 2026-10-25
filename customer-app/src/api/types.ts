@@ -451,6 +451,8 @@ export interface components {
             shortfalls: components["schemas"]["ShortfallOut"][];
             /** Tradeoff */
             tradeoff: string;
+            /** Why Not */
+            why_not?: string | null;
             /** Cumulative Cost */
             cumulative_cost: string[];
         };

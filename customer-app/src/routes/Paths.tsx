@@ -191,19 +191,21 @@ function PathCard({ option: o, recommended, closest }: { option: PathOption; rec
         <Row label="Upfront" value={money(o.upfront_cost)} />
       </dl>
       <p className="basis">{o.tradeoff}</p>
-      {!o.eligible && o.ineligible_reason && (
-        <StatusMessage variant="warning" label="Unavailable">
-          {o.ineligible_reason}
-        </StatusMessage>
-      )}
-      {o.eligible && !o.affordable && (
-        <StatusMessage variant="warning" label="Shortfall">
-          <ul className="why">
-            {o.shortfalls.map((s) => (
-              <li key={s.kind}>{s.text}</li>
-            ))}
-          </ul>
-        </StatusMessage>
+      {o.why_not && (
+        <div className="why-not">
+          <p className="why-not-label">Why not this one?</p>
+          {!o.eligible ? (
+            <StatusMessage variant="warning" label="Unavailable">
+              {o.why_not}
+            </StatusMessage>
+          ) : !o.affordable ? (
+            <StatusMessage variant="warning" label="Shortfall">
+              {o.why_not}
+            </StatusMessage>
+          ) : (
+            <p className="why-not-line">{o.why_not}</p>
+          )}
+        </div>
       )}
     </article>
   );

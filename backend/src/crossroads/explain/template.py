@@ -41,6 +41,18 @@ TRADEOFFS = {
     "walk_away": "You return the car and leave Toyota, with a fee at return.",
 }
 
+# One short line for each path that is not the recommendation: why it lost. Placeholders only.
+WHY_NOT = {
+    "not_eligible": "{ineligible_reason}",
+    "cash": "Needs {cash_gap} more cash upfront",
+    "cash_bills": "Needs {cash_gap} more in the bank to cover a month of bills",
+    "monthly": "Monthly payment is {monthly_gap} over your budget",
+    "both": "Needs {cash_gap} more cash upfront and {monthly_gap} more monthly budget",
+    "both_bills": "Needs {cash_gap} more for bills and {monthly_gap} more monthly budget",
+    "more": "Costs {cost_gap} more over {horizon_years}",
+    "same": "Costs the same over {horizon_years}",
+}
+
 FLIP_SENTENCE = (
     "If {flip_input} changed from {flip_current} to {flip_threshold}, "
     "{flip_to_path} would become the recommendation."

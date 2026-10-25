@@ -31,8 +31,8 @@ const result = (over: Partial<PathsResult> = {}): PathsResult => ({
   contract_type: "lease",
   inputs_used: { miles_per_year: 14600, monthly_budget: "2250", years_to_keep: 2, financing_rate: "6.5" },
   options: [
-    option({ path: "keep_as_is", label: "Keep as is", five_year_cost: "31118" }),
-    option({ path: "buy_out", label: "Buy out", five_year_cost: "25729", monthly_payment: "419.69" }),
+    option({ path: "keep_as_is", label: "Keep as is", five_year_cost: "31118", why_not: "Costs $5,389 more over 5 years" }),
+    option({ path: "buy_out", label: "Buy out", five_year_cost: "25729", monthly_payment: "419.69", why_not: null }),
     option({
       path: "return_lease_new",
       label: "Return and lease new",
@@ -40,8 +40,9 @@ const result = (over: Partial<PathsResult> = {}): PathsResult => ({
       upfront_cost: "7296.00",
       affordable: false,
       shortfalls: [{ kind: "cash", amount: "5046.00", text: "needs $5,046 more cash upfront" }],
+      why_not: "Needs $5,046 more cash upfront",
     }),
-    option({ path: "walk_away", label: "Return and walk away", five_year_cost: "31513" }),
+    option({ path: "walk_away", label: "Return and walk away", five_year_cost: "31513", why_not: "Costs $5,784 more over 5 years" }),
   ],
   recommendation: {
     path: "buy_out",
@@ -183,7 +184,8 @@ describe("Your paths", () => {
     stubFetch(serve(result()));
     renderPaths();
     const card = await screen.findByRole("article", { name: "Return and lease new" });
-    expect(within(card).getByText("needs $5,046 more cash upfront")).toBeInTheDocument();
+    expect(within(card).getByText("Needs $5,046 more cash upfront")).toBeInTheDocument();
+    expect(within(card).queryByText("needs $5,046 more cash upfront")).not.toBeInTheDocument(); // the old note is gone
     expect(within(card).queryByText("Recommended")).not.toBeInTheDocument();
   });
 
@@ -198,6 +200,7 @@ describe("Your paths", () => {
           five_year_cost: "13306",
           eligible: false,
           ineligible_reason: "Your current rate is already lower than this refinance rate.",
+          why_not: "Your current rate is already lower than this refinance rate.",
         }),
       ],
       recommendation: { ...result().recommendation, path: "keep_as_is", label: "Keep as is" },
@@ -207,7 +210,45 @@ describe("Your paths", () => {
     const card = await screen.findByRole("article", { name: "Refinance" });
     expect(card).toHaveClass("card-ineligible");
     expect(within(card).getByText("Not eligible")).toBeInTheDocument();
-    expect(within(card).getByText("Your current rate is already lower than this refinance rate.")).toBeInTheDocument();
+    // the reason is shown once, as the card's why-not line, in the warning status
+    expect(within(card).getAllByText("Your current rate is already lower than this refinance rate.")).toHaveLength(1);
+    expect(within(card).getByText("Unavailable")).toBeInTheDocument();
+  });
+
+  it("gives every path except the recommended one a 'Why not this one?' line", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    await screen.findByRole("heading", { level: 1 });
+    const cards = screen.getAllByRole("article");
+    expect(within(cards[0]).queryByText("Why not this one?")).not.toBeInTheDocument(); // the recommended card
+    expect(cards.slice(1)).toHaveLength(3);
+    for (const card of cards.slice(1)) expect(within(card).getByText("Why not this one?")).toBeInTheDocument();
+    expect(within(screen.getByRole("article", { name: "Keep as is" })).getByText("Costs $5,389 more over 5 years")).toBeInTheDocument();
+    expect(within(screen.getByRole("article", { name: "Return and walk away" })).getByText("Costs $5,784 more over 5 years")).toBeInTheDocument();
+    // the path's own description stays beside it
+    expect(within(cards[1]).getByText("A trade-off line.")).toBeInTheDocument();
+  });
+
+  it("draws shortfall and unavailable lines in the warning status, and cost lines as plain text", async () => {
+    stubFetch(serve(result()));
+    renderPaths();
+    const short = await screen.findByRole("article", { name: "Return and lease new" });
+    const warn = short.querySelector(".status-warning");
+    expect(warn).toHaveTextContent("Shortfall");
+    expect(warn).toHaveTextContent("Needs $5,046 more cash upfront");
+    expect(warn?.querySelector("svg")).not.toBeNull();
+    const dearer = screen.getByRole("article", { name: "Keep as is" });
+    expect(dearer.querySelector(".status")).toBeNull();
+    expect(dearer.querySelector(".why-not")).toHaveTextContent("Costs $5,389 more over 5 years");
+  });
+
+  it("draws no line for a path whose line was dropped", async () => {
+    const dropped = result({ options: result().options.map((o) => (o.path === "keep_as_is" ? { ...o, why_not: null } : o)) });
+    stubFetch(serve(dropped));
+    renderPaths();
+    const card = await screen.findByRole("article", { name: "Keep as is" });
+    expect(within(card).queryByText("Why not this one?")).not.toBeInTheDocument();
+    expect(within(card).getByText("A trade-off line.")).toBeInTheDocument();
   });
 
   it("says so when nothing is affordable and points to the closest path", async () => {
@@ -216,6 +257,7 @@ describe("Your paths", () => {
         ...o,
         affordable: false,
         shortfalls: [{ kind: "cash" as const, amount: "700.00", text: "needs $700 more cash upfront" }],
+        why_not: "Needs $700 more cash upfront",
       })),
       recommendation: {
         ...result().recommendation,
@@ -243,6 +285,11 @@ describe("Your paths", () => {
     // there is no recommendation to hold steady, so it must not claim one does
     expect(screen.getByText(/There is no recommendation yet/)).toBeInTheDocument();
     expect(screen.queryByText(/holds across every setting/)).not.toBeInTheDocument();
+    // every path says what it is missing, and none compares costs with a recommendation that does not exist
+    for (const card of screen.getAllByRole("article")) {
+      expect(within(card).getByText("Needs $700 more cash upfront")).toBeInTheDocument();
+      expect(card).not.toHaveTextContent(/Costs .* more/);
+    }
   });
 
   it("says the recommendation is stable when no input would flip it", async () => {
